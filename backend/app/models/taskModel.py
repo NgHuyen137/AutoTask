@@ -3,12 +3,11 @@ from enum import Enum, IntEnum
 from typing import Optional, List, Any
 from pydantic import BaseModel, Field, model_validator, field_validator
 from app.utils.mongodb import PyObjectId
-from app.utils.datetime import tz, add_utc_timezone
+from app.utils.datetime import tz, get_utc_now, add_utc_timezone
 
 class Status(IntEnum):
-    NOT_STARTED = 0
-    IN_PROGRESS = 1
-    COMPLETED = 2
+    NOT_COMPLETED = 0
+    COMPLETED = 1
 
 class Priority(IntEnum):
     ASAP = 3
@@ -50,7 +49,7 @@ class Task(BaseModel):
     scheduling_hour_id: Optional[PyObjectId] = None
     smart_scheduling: bool = False
     name: str
-    status: Status = Status.NOT_STARTED
+    status: Status = Status.NOT_COMPLETED
     priority: Priority = Priority.MEDIUM
     tags: Optional[List[Tag]] = None
     description: Optional[str] = None
@@ -59,7 +58,7 @@ class Task(BaseModel):
     start_date: Optional[datetime] = None 
     due_date: Optional[datetime] = None
     time_allocations: Optional[List[TimeBlock]] = None
-    created_at: datetime = datetime.now(tz=tz).astimezone(tz=timezone.utc).replace(second=0, microsecond=0)
+    created_at: datetime = Field(default_factory=get_utc_now)
     updated_at: Optional[datetime] = None
 
     @model_validator(mode="before")
@@ -106,7 +105,7 @@ class TaskUpdate(BaseModel):
     due_date: Optional[datetime] = None
     time_allocations: Optional[List[TimeBlock]] = None
     created_at: datetime
-    updated_at: datetime = datetime.now(tz=tz).astimezone(tz=timezone.utc).replace(second=0, microsecond=0)
+    updated_at: datetime = Field(default_factory=get_utc_now)
 
     @model_validator(mode="after")
     @classmethod

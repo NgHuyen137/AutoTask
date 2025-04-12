@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, status
+from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Database
 from app.exceptions.baseExceptions import *
 from app.exceptions.taskExceptions import *
@@ -28,6 +29,15 @@ app = FastAPI(
     docs_url=f"{version_prefix}/docs",
     redoc_url=f"{version_prefix}/redoc",
     openapi_url=f"{version_prefix}/openapi.json"
+)
+
+# Add CORSMiddleware to allow the frontend to access the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"]
 )
 
 # Exception handlers

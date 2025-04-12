@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi.responses import JSONResponse 
 from fastapi import status, APIRouter, Depends, Response
 from motor.motor_asyncio import AsyncIOMotorDatabase
@@ -6,21 +7,29 @@ from app.models.taskModel import Task, TaskUpdate
 from app.exceptions.taskExceptions import TaskNotFoundError, TaskAutoScheduleError
 from app.services.taskService.autoScheduler import find_optimal_time
 from app.services.taskService.crud import (
-    get_task_by_id,
-    get_all_tasks,
-    create_task,
-    update_task,
-    delete_task
+  get_task_by_id,
+  get_tasks,
+  create_task,
+  update_task,
+  delete_task
 )
 
 task_router = APIRouter()
 
 @task_router.get("/tasks/{id}")
 async def get_single_task(id: str, db: AsyncIOMotorDatabase = Depends(Database.get_db)):
-    result = await get_task_by_id(id, db)
-    if result:
-        return result
+    task = await get_task_by_id(id, db)
+    if task:
+        return task
     raise TaskNotFoundError()
+
+
+@task_router.get("/tasks")
+async def get_all_tasks(start_of_week: str, end_of_week: str, db: AsyncIOMotorDatabase = Depends(Database.get_db)):
+  tasks = await get_tasks(start_of_week, end_of_week, db)
+  if tasks:
+    return tasks
+  raise TaskNotFoundError()
 
 
 @task_router.post("/tasks")
@@ -37,7 +46,7 @@ async def update_single_task(id: str, updated_data: TaskUpdate, db: AsyncIOMotor
     if updated_task:
         return {
             "message": "Task updated successfully!",
-            "updated_task": updated_task.model_dump(),
+            "updated_task": updated_task.model_dump(by_alias=True),
             "updated_overdue_tasks": updated_overdue_tasks
         }
     
@@ -50,7 +59,7 @@ async def delete_single_task(id: str, db: AsyncIOMotorDatabase = Depends(Databas
     if deleted_task:
         return {
             "message": "Task deleted successfully!",
-            "deleted_task": deleted_task.model_dump(),
+            "deleted_task": deleted_task.model_dump(by_alias=True),
             "updated_overdue_tasks": updated_overdue_tasks
         }
     

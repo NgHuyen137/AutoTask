@@ -19,7 +19,7 @@ async def fetch_overdue_time_blocks(db: AsyncIOMotorDatabase):
                 "due_date": 1,
                 "overdue_time_blocks": {  
                     "$filter": {
-                        "input": "$time_allocations",
+                        "input": {"$ifNull": ["$time_allocations", []]},
                         "as": "time_block",
                         "cond": {"$eq": [{"$ifNull": ["$$time_block.is_scheduled_ontime", True]}, False]}
                     }
@@ -34,14 +34,15 @@ async def fetch_overdue_time_blocks(db: AsyncIOMotorDatabase):
         # and convert naive datetime to utc timezone
         docs = []
         for doc in results:
-            if doc["due_date"] and "overdue_time_blocks" in doc:
+            if doc["overdue_time_blocks"]:
                 doc["due_date"] = add_utc_timezone(doc["due_date"])
                 for overdue_time_block in doc["overdue_time_blocks"]:
                     overdue_time_block["start_at"] = add_utc_timezone(overdue_time_block["start_at"])
                     overdue_time_block["end_at"] = add_utc_timezone(overdue_time_block["end_at"])
                 docs.append(doc)
         
-        sorted_docs = sorted(docs, key=lambda x: x["due_date"])
+        if docs:
+          sorted_docs = sorted(docs, key=lambda x: x["due_date"])
     return sorted_docs
 
 
@@ -57,7 +58,6 @@ def get_new_time_blocks(
     remaining_duration = overdue_duration
 
     for time_allocation in rescheduled_time_allocations:
-        print(time_allocation)
         if time_allocation["is_scheduled_ontime"]:
             remaining_duration -= time_allocation["end_at"] - time_allocation["start_at"]
             new_time_allocations.append(time_allocation)
@@ -78,13 +78,13 @@ async def reschedule_overdue_tasks(db: AsyncIOMotorDatabase):
     '''
     sorted_docs = await fetch_overdue_time_blocks(db)
     if not sorted_docs: # Check if there are overdue tasks
-        return
+        return []
     
     updated_data_list = []
     for doc in sorted_docs:
         overdue_task = await get_task_by_id(doc["_id"], db)
         overdue_task_copy = copy.deepcopy(overdue_task)
-        updated_data = overdue_task.model_dump()       
+        updated_data = overdue_task.model_dump(by_alias=True)       
 
         for overdue_time_block in doc["overdue_time_blocks"]:
             if len(overdue_task_copy.time_allocations) > 1:
@@ -106,6 +106,6 @@ async def reschedule_overdue_tasks(db: AsyncIOMotorDatabase):
 
         updated_data["time_allocations"] = sorted(updated_data["time_allocations"], key=lambda x: x["start_at"])
 
-        if updated_data != overdue_task.model_dump():
+        if updated_data != overdue_task.model_dump(by_alias=True):
             updated_data_list.append(updated_data)       
     return updated_data_list

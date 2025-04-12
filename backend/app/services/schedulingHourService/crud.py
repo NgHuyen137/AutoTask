@@ -4,12 +4,23 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.models.schedulingHourModel import SchedulingHour
 from app.utils.datetime import convert_day_of_week
 
+async def get_scheduling_hours(db: AsyncIOMotorDatabase):
+  result = await db.scheduling_hour_collection.find({}).to_list(length=None)
+  if result:
+    scheduling_hours = []
+    for scheduling_hour_dict in result:
+      scheduling_hours.append(SchedulingHour(**scheduling_hour_dict))
+    return scheduling_hours
+  return None
+
+
 async def get_scheduling_hour_by_id(id: str, db: AsyncIOMotorDatabase):
     filter = {"_id": ObjectId(id)}
     scheduling_hour = await db.scheduling_hour_collection.find_one(filter)
     if scheduling_hour:
         return SchedulingHour(**scheduling_hour)
     return None
+
 
 async def create_scheduling_hour(scheduling_hour: SchedulingHour, db: AsyncIOMotorDatabase):
     new_scheduling_hour = scheduling_hour.model_dump()
