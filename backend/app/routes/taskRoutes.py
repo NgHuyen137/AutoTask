@@ -1,66 +1,61 @@
-from datetime import datetime
-from fastapi.responses import JSONResponse 
-from fastapi import status, APIRouter, Depends, Response
-from motor.motor_asyncio import AsyncIOMotorDatabase
-from app.db.database import Database
-from app.models.taskModel import Task, TaskUpdate
-from app.exceptions.taskExceptions import TaskNotFoundError, TaskAutoScheduleError
-from app.services.taskService.autoScheduler import find_optimal_time
+from fastapi import APIRouter, Response, status
+
+from app.exceptions.taskExceptions import TaskNotFoundError
+from app.schemas.taskSchema import TaskCreate, TaskUpdate
 from app.services.taskService.crud import (
-  get_task_by_id,
-  get_tasks,
-  create_task,
-  update_task,
-  delete_task
+	create_task,
+	delete_task,
+	get_task_by_id,
+	get_tasks,
+	update_task,
 )
 
 task_router = APIRouter()
 
+
 @task_router.get("/tasks/{id}")
-async def get_single_task(id: str, db: AsyncIOMotorDatabase = Depends(Database.get_db)):
-    task = await get_task_by_id(id, db)
-    if task:
-        return task
-    raise TaskNotFoundError()
+async def get_single_task(id: str):
+	task = await get_task_by_id(id)
+	if task:
+		return task
+	raise TaskNotFoundError()
 
 
 @task_router.get("/tasks")
-async def get_all_tasks(start_of_week: str, end_of_week: str, db: AsyncIOMotorDatabase = Depends(Database.get_db)):
-  tasks = await get_tasks(start_of_week, end_of_week, db)
-  if tasks:
-    return tasks
-  raise TaskNotFoundError()
+async def get_all_tasks(start_of_week: str, end_of_week: str):
+	tasks = await get_tasks(start_of_week, end_of_week)
+	if tasks:
+		return tasks
+	raise TaskNotFoundError()
 
 
 @task_router.post("/tasks")
-async def create_single_task(response: Response, task: Task, db: AsyncIOMotorDatabase = Depends(Database.get_db)):
-    new_task = await create_task(task, db)
-    if new_task:
-        response.status_code = status.HTTP_201_CREATED
-        return new_task
-    
+async def create_single_task(response: Response, task: TaskCreate):
+	new_task = await create_task(task)
+	if new_task:
+		response.status_code = status.HTTP_201_CREATED
+		return new_task
+
 
 @task_router.put("/tasks/{id}")
-async def update_single_task(id: str, updated_data: TaskUpdate, db: AsyncIOMotorDatabase = Depends(Database.get_db)):
-    updated_task, updated_overdue_tasks = await update_task(id, updated_data, db)
-    if updated_task:
-        return {
-            "message": "Task updated successfully!",
-            "updated_task": updated_task.model_dump(by_alias=True),
-            "updated_overdue_tasks": updated_overdue_tasks
-        }
-    
-    raise TaskNotFoundError()
+async def update_single_task(id: str, updated_data: TaskUpdate):
+	updated_task, updated_overdue_tasks = await update_task(id, updated_data)
+	if updated_task:
+		return {
+			"updated_task": updated_task,
+			"updated_overdue_tasks": updated_overdue_tasks,
+		}
+
+	raise TaskNotFoundError()
 
 
 @task_router.delete("/tasks/{id}")
-async def delete_single_task(id: str, db: AsyncIOMotorDatabase = Depends(Database.get_db)):
-    deleted_task, updated_overdue_tasks = await delete_task(id, db)
-    if deleted_task:
-        return {
-            "message": "Task deleted successfully!",
-            "deleted_task": deleted_task.model_dump(by_alias=True),
-            "updated_overdue_tasks": updated_overdue_tasks
-        }
-    
-    raise TaskNotFoundError()
+async def delete_single_task(id: str):
+	deleted_task, updated_overdue_tasks = await delete_task(id)
+	if deleted_task:
+		return {
+			"deleted_task": deleted_task,
+			"updated_overdue_tasks": updated_overdue_tasks,
+		}
+
+	raise TaskNotFoundError()
