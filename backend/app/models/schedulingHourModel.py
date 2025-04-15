@@ -1,49 +1,41 @@
-from datetime import time, datetime, timezone
-from enum import IntEnum
-from typing import Optional, List
-from pydantic import BaseModel, Field, field_validator
-from app.utils.mongodb import PyObjectId
-from app.utils.datetime import tz, add_utc_timezone
+from datetime import datetime
+from typing import List, Optional
 
-class DayOfWeekEnum(IntEnum):
-    MONDAY = 0
-    TUESDAY = 1
-    WEDNESDAY = 2
-    THURSDAY = 3
-    FRIDAY = 4
+from beanie import Document
+from pydantic import BaseModel, field_validator
+
+from app.utils.datetime import add_utc_timezone
+
 
 class TimeFrame(BaseModel):
-    start_at: time = time(9, 0)
-    end_at: time = time(17, 0)
+	start_at: datetime
+	end_at: datetime
 
-    # After fetching time frames from Mongodb, convert them to time
-    @field_validator("start_at", "end_at", mode="before")
-    @classmethod
-    def add_timezone(cls, value: datetime):
-        if isinstance(value, datetime):
-            return add_utc_timezone(value).time()
-        return value
-        
+	@field_validator("start_at", "end_at", mode="before")
+	@classmethod
+	def add_timezone(cls, value):
+		if isinstance(value, datetime):
+			return add_utc_timezone(value)
+		return value
+
+
 class DayOfWeek(BaseModel):
-    day_index: int
-    time_frames: List[TimeFrame] = Field(default_factory=lambda: [TimeFrame()])
+	day_index: int
+	time_frames: List[TimeFrame]
 
-def default_days_of_week():
-    return [
-        DayOfWeek(day_index=i) for i in range(DayOfWeekEnum.FRIDAY) # From Monday to Friday
-    ]
 
-class SchedulingHour(BaseModel):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    name: str
-    description: Optional[str] = None
-    days_of_week: List[DayOfWeek] = Field(default_factory=default_days_of_week)
-    created_at: datetime = datetime.now(tz=tz).astimezone(tz=timezone.utc).replace(second=0, microsecond=0)
-    updated_at: Optional[datetime] = None
+class SchedulingHour(Document):
+	name: str
+	description: Optional[str] = None
+	days_of_week: List[DayOfWeek]
+	created_at: datetime
 
-    @field_validator("created_at", "updated_at", mode="after")
-    @classmethod
-    def add_timezone(cls, value: datetime):
-        if value and not value.tzinfo: 
-            value = add_utc_timezone(value)
-        return value
+	@field_validator("created_at", mode="after")
+	@classmethod
+	def add_timezone(cls, value: datetime):
+		if value and not value.tzinfo:
+			value = add_utc_timezone(value)
+		return value
+
+	class Settings:
+		name = "scheduling_hour_collection"
