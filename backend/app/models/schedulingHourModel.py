@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from beanie import Document
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 from app.utils.datetime import add_utc_timezone
 
@@ -29,13 +29,16 @@ class SchedulingHour(Document):
 	description: Optional[str] = None
 	days_of_week: List[DayOfWeek]
 	created_at: datetime
+	updated_at: Optional[datetime] = None
 
-	@field_validator("created_at", mode="after")
+	@model_validator(mode="after")
 	@classmethod
-	def add_timezone(cls, value: datetime):
-		if value and not value.tzinfo:
-			value = add_utc_timezone(value)
-		return value
+	def add_timezone(cls, data: Any):
+		if data.created_at and not data.created_at.tzinfo:
+			data.created_at = add_utc_timezone(data.created_at)
+		if data.updated_at and not data.updated_at.tzinfo:
+			data.updated_at = add_utc_timezone(data.updated_at)
+		return data
 
 	class Settings:
 		name = "scheduling_hour_collection"
