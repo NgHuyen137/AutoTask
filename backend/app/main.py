@@ -4,10 +4,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.db.database import Database
-from app.exceptions.baseExceptions import *
-from app.exceptions.schedulingHourExceptions import *
-from app.exceptions.taskExceptions import *
+from app.db.mongodb import Database
+from app.exceptions.baseExceptions import creat_exception_handler
+from app.exceptions.schedulingHourExceptions import SchedulingHourNotFoundError
+from app.exceptions.taskExceptions import TaskAutoScheduleError, TaskNotFoundError
+from app.exceptions.userExceptions import UnauthorizedError, UserAlreadyExistsError
+from app.routes.authRoutes import auth_router
 from app.routes.schedulingHourRoutes import scheduling_hour_router
 from app.routes.taskRoutes import task_router
 
@@ -46,7 +48,22 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
-# Exception handlers
+app.add_exception_handler(
+	UnauthorizedError,
+	creat_exception_handler(
+		status_code=status.HTTP_401_UNAUTHORIZED,
+		initial_detail="Invalid credentials.",
+	),
+)
+
+app.add_exception_handler(
+	UserAlreadyExistsError,
+	creat_exception_handler(
+		status_code=status.HTTP_409_CONFLICT,
+		initial_detail="User already exists.",
+	),
+)
+
 app.add_exception_handler(
 	TaskNotFoundError,
 	creat_exception_handler(
@@ -69,5 +86,6 @@ app.add_exception_handler(
 	),
 )
 
+app.include_router(auth_router, prefix=version_prefix)
 app.include_router(task_router, prefix=version_prefix)
 app.include_router(scheduling_hour_router, prefix=version_prefix)
