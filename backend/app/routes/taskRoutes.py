@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Response, status
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Response, status
+
+from app.dependencies.auth import get_current_user
 from app.exceptions.taskExceptions import TaskNotFoundError
+from app.models.userModel import User
 from app.schemas.taskSchema import TaskCreate, TaskUpdate
 from app.services.taskService.crud import (
 	create_task,
@@ -14,7 +18,9 @@ task_router = APIRouter()
 
 
 @task_router.get("/tasks/{id}")
-async def get_single_task(id: str):
+async def get_single_task(
+	id: str, current_user: Annotated[User, Depends(get_current_user)]
+):
 	task = await get_task_by_id(id)
 	if task:
 		return task
@@ -22,7 +28,11 @@ async def get_single_task(id: str):
 
 
 @task_router.get("/tasks")
-async def get_all_tasks(start_of_week: str, end_of_week: str):
+async def get_all_tasks(
+	start_of_week: str,
+	end_of_week: str,
+	current_user: Annotated[User, Depends(get_current_user)],
+):
 	tasks = await get_tasks(start_of_week, end_of_week)
 	if tasks:
 		return tasks
@@ -30,7 +40,11 @@ async def get_all_tasks(start_of_week: str, end_of_week: str):
 
 
 @task_router.post("/tasks")
-async def create_single_task(response: Response, task: TaskCreate):
+async def create_single_task(
+	response: Response,
+	task: TaskCreate,
+	current_user: Annotated[User, Depends(get_current_user)],
+):
 	new_task = await create_task(task)
 	if new_task:
 		response.status_code = status.HTTP_201_CREATED
@@ -38,7 +52,11 @@ async def create_single_task(response: Response, task: TaskCreate):
 
 
 @task_router.put("/tasks/{id}")
-async def update_single_task(id: str, updated_data: TaskUpdate):
+async def update_single_task(
+	id: str,
+	updated_data: TaskUpdate,
+	current_user: Annotated[User, Depends(get_current_user)],
+):
 	updated_task, updated_overdue_tasks = await update_task(id, updated_data)
 	if updated_task:
 		return {
@@ -50,7 +68,9 @@ async def update_single_task(id: str, updated_data: TaskUpdate):
 
 
 @task_router.delete("/tasks/{id}")
-async def delete_single_task(id: str):
+async def delete_single_task(
+	id: str, current_user: Annotated[User, Depends(get_current_user)]
+):
 	deleted_task, updated_overdue_tasks = await delete_task(id)
 	if deleted_task:
 		return {
