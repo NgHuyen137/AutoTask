@@ -11,3 +11,9 @@ class UserAlreadyExistsError(BaseError):
 	"""An error for user already exists"""
 
 	pass
+
+
+class AccountNotVerifiedError(BaseError):
+	"""An error for account not verified"""
+
+	pass

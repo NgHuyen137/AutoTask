@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.config.settings import settings
 from app.exceptions.userExceptions import UnauthorizedError, UserAlreadyExistsError
 from app.schemas.userSchema import TokenResponse, UserCreate
-from app.services.authService.login import login_user_account
+from app.services.authService.login import login_user_account, refresh_access_token
 from app.services.authService.logout import logout_user_account
 from app.services.authService.signup import signup_user_account
 
@@ -44,7 +44,16 @@ async def login(
 	raise UnauthorizedError()
 
 
-@auth_router.get("/logout")
+@auth_router.post("/refresh")
+async def refresh(refresh_token: Optional[str] = Cookie(None, alias="refresh_token")):
+	if refresh_token:
+		result = await refresh_access_token(refresh_token)
+		if result:
+			return TokenResponse(access_token=result["access_token"], token_type="bearer")
+	raise UnauthorizedError()
+
+
+@auth_router.post("/logout")
 async def logout(
 	response: Response,
 	access_token: str = Depends(oauth2_scheme),

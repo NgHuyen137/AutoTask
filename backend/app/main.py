@@ -8,7 +8,11 @@ from app.db.mongodb import Database
 from app.exceptions.baseExceptions import creat_exception_handler
 from app.exceptions.schedulingHourExceptions import SchedulingHourNotFoundError
 from app.exceptions.taskExceptions import TaskAutoScheduleError, TaskNotFoundError
-from app.exceptions.userExceptions import UnauthorizedError, UserAlreadyExistsError
+from app.exceptions.userExceptions import (
+	AccountNotVerifiedError,
+	UnauthorizedError,
+	UserAlreadyExistsError,
+)
 from app.routes.authRoutes import auth_router
 from app.routes.schedulingHourRoutes import scheduling_hour_router
 from app.routes.taskRoutes import task_router
@@ -61,6 +65,14 @@ app.add_exception_handler(
 	creat_exception_handler(
 		status_code=status.HTTP_409_CONFLICT,
 		initial_detail="User already exists.",
+	),
+)
+
+app.add_exception_handler(
+	AccountNotVerifiedError,
+	creat_exception_handler(
+		status_code=status.HTTP_403_FORBIDDEN,
+		initial_detail="Account is not verified.",
 	),
 )
 
