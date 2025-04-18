@@ -8,6 +8,7 @@ from pydantic import EmailStr, Field
 class User(Document):
 	email: EmailStr
 	hashed_password: str = Field(exclude=True)
+	is_verified: bool = False
 	created_at: datetime
 	updated_at: Optional[datetime] = None
 

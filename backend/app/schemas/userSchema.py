@@ -14,6 +14,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
 	email: EmailStr
 	password: str = Field(min_length=8)
+	is_verified: bool = False
 	created_at: datetime
 	updated_at: datetime = Field(default_factory=get_utc_now)
 
