@@ -1,6 +1,7 @@
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
+    ".env",
     ".bzr",
     ".direnv",
     ".eggs",
@@ -55,10 +56,10 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 quote-style = "double"
 
 # Like Black, indent with spaces, rather than tabs.
-indent-style = "tab"
+indent-style = "space"
 
 # Like Black, respect magic trailing commas.
-skip-magic-trailing-comma = false
+skip-magic-trailing-comma = true
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
