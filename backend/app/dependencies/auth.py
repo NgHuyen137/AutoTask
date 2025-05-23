@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 
-from app.exceptions.userExceptions import UnauthorizedError
+from app.exceptions.userExceptions import AccessTokenExpiredError
 from app.services.userService.crud import get_user_by_id
 from app.utils.auth import verify_token
 
@@ -17,4 +17,4 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 		user = await get_user_by_id(user_id)
 		if user:
 			return user
-	raise UnauthorizedError()
+	raise AccessTokenExpiredError()
