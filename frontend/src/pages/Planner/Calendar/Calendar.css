@@ -1,0 +1,132 @@
+:root {
+  --fc-event-border-color: "none";
+  --fc-event-bg-color: #fef6f6;
+  --fc-event-text-color: #c6746d;
+  --fc-highlight-color: none;
+  --fc-small-font-size: 0.8rem;
+  --fc-today-bg-color: #f7f8fc;
+  --fc-now-indicator-color: #d90403;
+}
+
+.fc {
+  height: calc(100vh - 56px - 48px);
+  padding-top: 16px;
+  background-color: var(--mui-palette-background-default);
+}
+
+.fc-timegrid-event-harness-inset .fc-timegrid-event {
+  box-shadow: none !important;
+}
+
+.fc-scroller {
+  scroll-behavior: smooth;
+}
+
+.fc-scrollgrid-section-header > th > .fc-scroller-harness > .fc-scroller {
+  overflow: hidden !important;
+}
+
+.fc-scrollgrid-section-header > th,
+.fc-scrollgrid-section.fc-scrollgrid-section-body.fc-scrollgrid-section-liquid
+  > td {
+  border-right: none !important;
+}
+
+.fc-event-main {
+  width: "100%";
+}
+
+.fc-event {
+  border-radius: 8px !important;
+}
+
+.fc-timegrid-col-frame {
+  margin-right: 16px;
+}
+
+.fc-toolbar {
+  margin: 0;
+}
+
+.fc-header-toolbar {
+  display: none !important;
+}
+
+table,
+.fc-timegrid-body {
+  width: 100% !important;
+}
+
+.fc .fc-timegrid-slot-minor {
+  border-top-style: none;
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border: none;
+}
+
+.fc-theme-standard th,
+.fc-theme-standard td {
+  border: 1px solid #e7e8ec;
+}
+
+.fc-timegrid-bg-harness {
+  cursor: n-resize;
+}
+
+thead {
+  height: 66px;
+}
+
+th {
+  padding-top: 8px !important;
+}
+
+.fc-col-header-cell-cushion {
+  display: none !important;
+}
+
+.fc-col-header-cell.fc-day-today {
+  padding-top: 6px !important;
+}
+
+.fc-day-today .fc-col-header-cell-cushion {
+  display: none;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  background-color: #d90403;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  left: 150px;
+  z-index: 1500 !important;
+}
+
+/* .fc-timegrid-now-indicator-arrow {
+  background-color: #D90403;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-left: 150px;
+} */
+
+.fc-timegrid-axis .fc-timegrid-col-frame {
+  margin-right: 0;
+  padding-right: 8px !important;
+}
+
+.fc .fc-timegrid-slot-label-cushion {
+  color: #828283;
+  font-size: 10px;
+  padding-left: 24px;
+  padding-right: 16px;
+}
+
+td[data-time="00:00:00"]
+  > .fc-timegrid-slot-label-frame
+  > .fc-timegrid-slot-label-cushion {
+  display: none;
+}
