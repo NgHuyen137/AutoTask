@@ -1,17 +1,19 @@
 import { useRef } from "react"
 import { useLayoutContext, usePlannerContext } from "~/hooks/useContext"
 import { useMediaQuery } from "@mui/material"
+import { useScreenSize } from "~/hooks/useEffect"
+
+import UserAccount from "./UserAccount/UserAccount"
+
 import TaskCreateButton from "./TaskCreateButton/TaskCreateButton"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
-import Avatar from "@mui/material/Avatar"
 import { AppBar as MuiAppBar } from "@mui/material"
 import Toolbar from "@mui/material/Toolbar"
 import Typography from "@mui/material/Typography"
 import AddRoundedIcon from "@mui/icons-material/AddRounded"
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
-import { useScreenSize } from "~/hooks/useEffect"
 
 export default function AppBar({ menuButtonRef, taskCreateFormRef }) {
   const isMobile = useMediaQuery("(max-width: 499px)")
@@ -113,16 +115,10 @@ export default function AppBar({ menuButtonRef, taskCreateFormRef }) {
               taskCreateFormRef={taskCreateFormRef}
             />
 
-            <Avatar
-              sx={{
-                backgroundColor: "#78909C",
-                width: "24px",
-                height: "24px",
-                fontSize: "0.8rem"
-              }}
-            >
-              H
-            </Avatar>
+            {
+              !isMobile &&
+              <UserAccount />
+            }
 
             {screenWidth <= sidebarScreenSizeThreshold && (
               <IconButton

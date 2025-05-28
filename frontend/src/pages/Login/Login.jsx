@@ -1,15 +1,21 @@
 import validator from "validator"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, Navigate } from "react-router-dom"
 import { useState } from "react"
 import { useLogin } from "~/hooks/useMutation"
 import { useAuthContext } from "~/hooks/useContext"
+import { useDelayRedirect } from "~/hooks/useEffect"
 import { useMediaQuery } from "@mui/material"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
 
+import Spinner from "~/components/ui/Spinner"
 import CustomSubmitButton from "~/components/ui/CustomSubmitButton"
 
 import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
+import Stack from "@mui/material/Stack"
+import Button from "@mui/material/Button"
+import Divider from "@mui/material/Divider"
+import SvgIcon from "@mui/material/SvgIcon"
 import Tooltip from "@mui/material/Tooltip"
 import IconButton from "@mui/material/IconButton"
 import Container from "@mui/material/Container"
@@ -26,9 +32,10 @@ export default function Login() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [emailVerified, setEmailVerified] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   // Manage access token
-  const { setAccessToken } = useAuthContext()
+  const { setAccessToken, setUser } = useAuthContext()
 
   // Manage errors
   const [emailError, setEmailError] = useState(false)
@@ -69,18 +76,25 @@ export default function Login() {
   }
 
 
-  const navigate = useNavigate()
-  const { loginAccount, isLoading, isSuccess, reset } = useLogin()
+  const { loginAccount, isLoading, isSuccess } = useLogin()
   const handleFormSubmit = () => {
     const formData = new URLSearchParams()
     formData.append("username", email)
     formData.append("password", password)
 
-    if (!loginError && !emailError && !passwordError)
+    if (email === "")
+      setEmailError(true)
+    if (password === "")
+      setPasswordError(true)
+
+    if (
+      email !== "" && password !== "" &&
+      !loginError && !emailError && !passwordError
+    )
       loginAccount(formData, {
-        onSuccess: (tokenData) => {
-          setAccessToken(tokenData["access_token"])
-          setTimeout(() => navigate("/planner", { replace: true }), 3000)
+        onSuccess: (res) => {
+          setAccessToken(res["access_token"])
+          setUser(res["user"])
         },
         onError: (res) => {
           if (res.response.status === 403)
@@ -91,7 +105,21 @@ export default function Login() {
       })
   }
 
+  const handleLoginWithGoogle = () => {
+    window.location.href = "http://localhost:8000/api/v1/auth/login/google"
+  }
+
+  useDelayRedirect(isSuccess, setIsLoggedIn)
+
   const isLessThan464 = useMediaQuery("(max-width: 464px)")
+
+  if (isLoading || (isSuccess && !isLoggedIn))
+    return (
+      <Spinner />
+    )
+
+  if (isLoggedIn)
+    return <Navigate to="/planner" replace={true} />
 
   return (
     <Container
@@ -168,7 +196,7 @@ export default function Login() {
               {emailError && (
                 <FormHelperText
                   error={emailError}
-                  sx={{ alignSelf: "flex-start", margin: "0 0 0 3px" }}
+                  sx={{ alignSelf: "flex-start", margin: "0 0 0 3px", fontWeight: 500 }}
                 >
                   Invalid Email!
                 </FormHelperText>
@@ -227,7 +255,7 @@ export default function Login() {
               {passwordError && (
                 <FormHelperText
                   error={passwordError}
-                  sx={{ alignSelf: "flex-start", margin: "0 0 0 3px" }}
+                  sx={{ alignSelf: "flex-start", margin: "0 0 0 3px", fontWeight: 500 }}
                 >
                   Must be at least 8 characters!
                 </FormHelperText>
@@ -250,7 +278,7 @@ export default function Login() {
             {
               loginError &&
               (
-                <Typography sx={{ color: "#D3302F", fontWeight: 500, textAlign: "center" }}>
+                <Typography sx={{ color: "#D3302F", fontWeight: 600, textAlign: "center" }}>
                   Incorrect email or password. Please try again!
                 </Typography>
               )
@@ -259,7 +287,7 @@ export default function Login() {
             {
               !emailVerified &&
               (
-                <Typography sx={{ color: "#D3302F", fontWeight: 500, textAlign: "center" }}>
+                <Typography sx={{ color: "#D3302F", fontWeight: 600, textAlign: "center" }}>
                   Please verify your email first!
                 </Typography>
               )
@@ -268,7 +296,7 @@ export default function Login() {
             {
               isSuccess &&
               (
-                <Typography sx={{ color: "#6cba87", fontWeight: 500, textAlign: "center" }}>
+                <Typography sx={{ color: "#6cba87", fontWeight: 600, textAlign: "center" }}>
                   You have logged in successfully!
                 </Typography>
               )
@@ -286,7 +314,74 @@ export default function Login() {
               }}
             />
 
-            <Typography sx={{ color: "text.primary", textAlign: "center" }}>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Divider sx={{ flex: 1, color: "#f8f9fa" }} />
+              <Typography color="#6c757d" fontWeight={600}>
+                OR
+              </Typography>
+              <Divider sx={{ flex: 1, color: "#f8f9fa" }} />
+            </Stack>
+
+            <Button
+              onClick={handleLoginWithGoogle}
+              variant="contained"
+              sx={{
+                borderRadius: 3,
+                py: "11px",
+                textTransform: "none",
+                fontWeight: 600,
+                color: "text.primary",
+                backgroundColor: "#f8f9fa",
+                boxShadow: "none",
+                "&:hover": {
+                  boxShadow: "none",
+                  backgroundColor: "#e9ecef"
+                }
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2
+                }}
+              >
+                <SvgIcon sx={{ fontSize: "1rem"}}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 128 128"
+                    width="1em"
+                    height="1em"
+                  >
+                    <path
+                      fill="#fff"
+                      d="M44.59 4.21a63.28 63.28 0 0 0 4.33 120.9a67.6 67.6 0 0 0 32.36.35a57.13 57.13 0 0 0 25.9-13.46a57.44 57.44 0 0 0 16-26.26a74.33 74.33 0 0 0 1.61-33.58H65.27v24.69h34.47a29.72 29.72 0 0 1-12.66 19.52a36.16 36.16 0 0 1-13.93 5.5a41.29 41.29 0 0 1-15.1 0A37.16 37.16 0 0 1 44 95.74a39.3 39.3 0 0 1-14.5-19.42a38.31 38.31 0 0 1 0-24.63a39.25 39.25 0 0 1 9.18-14.91A37.17 37.17 0 0 1 76.13 27a34.28 34.28 0 0 1 13.64 8q5.83-5.8 11.64-11.63c2-2.09 4.18-4.08 6.15-6.22A61.22 61.22 0 0 0 87.2 4.59a64 64 0 0 0-42.61-.38z"
+                    ></path>
+                    <path
+                      fill="#e33629"
+                      d="M44.59 4.21a64 64 0 0 1 42.61.37a61.22 61.22 0 0 1 20.35 12.62c-2 2.14-4.11 4.14-6.15 6.22Q95.58 29.23 89.77 35a34.28 34.28 0 0 0-13.64-8a37.17 37.17 0 0 0-37.46 9.74a39.25 39.25 0 0 0-9.18 14.91L8.76 35.6A63.53 63.53 0 0 1 44.59 4.21z"
+                    ></path>
+                    <path
+                      fill="#f8bd00"
+                      d="M3.26 51.5a62.93 62.93 0 0 1 5.5-15.9l20.73 16.09a38.31 38.31 0 0 0 0 24.63q-10.36 8-20.73 16.08a63.33 63.33 0 0 1-5.5-40.9z"
+                    ></path>
+                    <path
+                      fill="#587dbd"
+                      d="M65.27 52.15h59.52a74.33 74.33 0 0 1-1.61 33.58a57.44 57.44 0 0 1-16 26.26c-6.69-5.22-13.41-10.4-20.1-15.62a29.72 29.72 0 0 0 12.66-19.54H65.27c-.01-8.22 0-16.45 0-24.68z"
+                    ></path>
+                    <path
+                      fill="#319f43"
+                      d="M8.75 92.4q10.37-8 20.73-16.08A39.3 39.3 0 0 0 44 95.74a37.16 37.16 0 0 0 14.08 6.08a41.29 41.29 0 0 0 15.1 0a36.16 36.16 0 0 0 13.93-5.5c6.69 5.22 13.41 10.4 20.1 15.62a57.13 57.13 0 0 1-25.9 13.47a67.6 67.6 0 0 1-32.36-.35a63 63 0 0 1-23-11.59A63.73 63.73 0 0 1 8.75 92.4z"
+                    ></path>
+                  </svg>
+                </SvgIcon>
+                <Typography fontWeight={600} color="text.primary">
+                  Continue with Google
+                </Typography>
+              </Box>
+            </Button>
+
+            <Typography sx={{ color: "text.primary", textAlign: "center", mt: 2 }}>
               Don't have an account?{" "}
               <Typography 
                 component={Link}

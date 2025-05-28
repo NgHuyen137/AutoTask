@@ -14,17 +14,20 @@ export const LayoutProvider = ({ children }) => {
     return JSON.parse(localStorage.getItem("hoverPin")) ?? false
   })
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [logoutSuccess, setLogoutSuccess] = useState(false)
+  const [isLoggedOut, setIsLoggedOut] = useState(false)
+
   return (
     <LayoutContext.Provider
       value={{
-        sidebarMounted,
-        setSidebarMounted,
-        openSidebar,
-        setOpenSidebar,
-        lockSidebar,
-        setLockSidebar,
-        hoverPin,
-        setHoverPin
+        sidebarMounted, setSidebarMounted,
+        openSidebar, setOpenSidebar,
+        lockSidebar, setLockSidebar,
+        hoverPin, setHoverPin,
+        logoutSuccess, setLogoutSuccess,
+        isLoggingOut, setIsLoggingOut,
+        isLoggedOut, setIsLoggedOut
       }}
     >
       {children}

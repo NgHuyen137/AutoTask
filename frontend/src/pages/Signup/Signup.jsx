@@ -1,5 +1,5 @@
 import validator from "validator"
-import { Link, useNavigate } from "react-router"
+import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { useCreateNewAccount } from "~/hooks/useMutation"
 import { useMediaQuery } from "@mui/material"
@@ -70,7 +70,15 @@ export default function Signup() {
       "password": password
     }
 
-    if (!signupError && !emailError && !passwordError)
+    if (email === "")
+      setEmailError(true)
+    if (password === "")
+      setPasswordError(true)
+
+    if (
+      email !== "" && password !== "" && 
+      !signupError && !emailError && !passwordError
+    )
       createNewAccount(newAccountData, {
         onSuccess: () => {
           navigate("/verify", { state: { email }, replace: true })
@@ -96,192 +104,201 @@ export default function Signup() {
       <Paper 
         sx={{ 
           minWidth: isLessThan464 ? "80vw" : "400px",
+          margin: 4,
           padding: 4,
           borderRadius: "12px",
           boxShadow: "0px 5px 5px -3px rgba(0, 0, 0, 0.06),0px 8px 10px 1px rgba(0, 0, 0, 0.03),0px 3px 14px 2px rgba(0, 0, 0, 0.05)"
         }}
       >
-        <Typography
-          variant="h0"
-          fontWeight={510}
-          color="primary.dark"
-          sx={{ wordSpacing: "2px" }}
-        >
-          Create your account
-        </Typography>
         <Box
-          component="form"
-          sx={{ 
+          sx={{
             display: "flex",
-            flexDirection: "column",
-            marginTop: 4,
-            gap: 2
+            flexDirection: "column"
           }}
         >
-          <Box 
-            sx={{ 
-              display: "flex",
-              flexDirection: "column",
-              gap: 0.8
-            }}
-          >
-            <Typography fontWeight={510}>
-              Name
-            </Typography>
-            <OutlinedInput
-              value={name}
-              onChange={handleNameChange}
-              id="name"
-              placeholder="Enter your name"
-              startAdornment={
-                <InputAdornment position="start">
-                  <PortraitRoundedIcon sx={{ color: "#A2A2A2", fontSize: "1rem" }} />
-                </InputAdornment>
-              }
-              sx={{
-                width: "100%",
-                borderRadius: 3,
-                "& .MuiOutlinedInput-input": {
-                  py: "12px"
-                }
-              }}
-            />
-          </Box>
-          
-          <Box 
-            sx={{ 
-              display: "flex",
-              flexDirection: "column",
-              gap: 0.8
-            }}
-          >
-            <Typography fontWeight={510}>
-              Email
-              <Typography component="span" color="error" fontWeight={510}> *</Typography>
-            </Typography>
-            <OutlinedInput
-              value={email}
-              onChange={handleEmailChange}
-              id="email-address"
-              placeholder="Enter your email"
-              startAdornment={
-                <InputAdornment position="start">
-                  <MailRoundedIcon sx={{ color: "#A2A2A2", fontSize: "1rem" }} />
-                </InputAdornment>
-              }
-              sx={{
-                width: "100%",
-                borderRadius: 3,
-                "& .MuiOutlinedInput-input": {
-                  py: "12px"
-                }
-              }}
-            />
-            {emailError && (
-              <FormHelperText
-                error={emailError}
-                sx={{ alignSelf: "flex-start", margin: "0 0 0 3px" }}
-              >
-                Invalid Email!
-              </FormHelperText>
-            )}
-          </Box>
 
+          <Typography
+            variant="h0"
+            fontWeight={510}
+            color="primary.dark"
+            sx={{ wordSpacing: "2px", alignSelf: "center" }}
+          >
+            SIGN UP
+          </Typography>
           <Box
+            component="form"
             sx={{ 
               display: "flex",
               flexDirection: "column",
-              gap: 0.8
+              marginTop: 4,
+              gap: 2
             }}
           >
-            <Typography fontWeight={510}>
-              Password
-              <Typography component="span" color="error" fontWeight={510}> *</Typography>
-            </Typography>
-            <OutlinedInput
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={handlePasswordChange}
-              id="password"
-              placeholder="Create password"
-              startAdornment={
-                <InputAdornment position="start">
-                  <LockRoundedIcon sx={{ color: "#A2A2A2", fontSize: "1rem" }} />
-                </InputAdornment>
-              }
-              endAdornment={
-                <InputAdornment position="end">
-                  <Tooltip title={showPassword ? "Show password" : "Hide password"}>
-                    <IconButton 
-                      onClick={handleTogglePassword} edge="end"
-                      sx={{
-                        padding: "4px",
-                        marginRight: "-4px"
-                      }}
-                    >
-                      {
-                        showPassword ? 
-                        <Visibility sx={{ fontSize: "1.2rem" }} /> : 
-                        <VisibilityOff sx={{ fontSize: "1.2rem" }} />
-                      }
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              }
-              sx={{
-                width: "100%",
-                borderRadius: 3,
-                "& .MuiOutlinedInput-input": {
-                  py: "12px"
-                }
-              }}
-            />
-            {passwordError && (
-              <FormHelperText
-                error={passwordError}
-                sx={{ alignSelf: "flex-start", margin: "0 0 0 3px" }}
-              >
-                Must be at least 8 characters!
-              </FormHelperText>
-            )}
-          </Box>
-
-          {
-            signupError && 
-            (
-              <Typography sx={{ color: "#D3302F", fontWeight: 600, textAlign: "center" }}>
-                Email has been used!
-              </Typography>
-            )
-          }
-          
-          <CustomSubmitButton 
-            buttonName="Sign Up"
-            handleClick={handleFormSubmit}
-            isLoading={isLoading}
-            isSuccess={isSuccess}
-            props={{
-              mt: 1.2,
-              borderRadius: 3,
-              py: 1                                                                 
-            }}
-          />
-
-          <Typography sx={{ color: "text.primary", textAlign: "center" }}>
-            Already have an account?{" "}
-            <Typography 
-              component={Link}
-              to="/login"
+            <Box 
               sx={{ 
-                color: "primary.dark", 
-                cursor: "pointer", 
-                textDecoration: "none",
-                fontWeight: 600
+                display: "flex",
+                flexDirection: "column",
+                gap: 0.8
               }}
             >
-              Login
+              <Typography fontWeight={510}>
+                Name
+              </Typography>
+              <OutlinedInput
+                value={name}
+                onChange={handleNameChange}
+                id="name"
+                placeholder="Enter your name"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <PortraitRoundedIcon sx={{ color: "#A2A2A2", fontSize: "1rem" }} />
+                  </InputAdornment>
+                }
+                sx={{
+                  width: "100%",
+                  borderRadius: 3,
+                  "& .MuiOutlinedInput-input": {
+                    py: "12px"
+                  }
+                }}
+              />
+            </Box>
+            
+            <Box 
+              sx={{ 
+                display: "flex",
+                flexDirection: "column",
+                gap: 0.8
+              }}
+            >
+              <Typography fontWeight={510}>
+                Email
+                <Typography component="span" color="error" fontWeight={510}> *</Typography>
+              </Typography>
+              <OutlinedInput
+                value={email}
+                onChange={handleEmailChange}
+                id="email-address"
+                placeholder="Enter your email"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <MailRoundedIcon sx={{ color: "#A2A2A2", fontSize: "1rem" }} />
+                  </InputAdornment>
+                }
+                sx={{
+                  width: "100%",
+                  borderRadius: 3,
+                  "& .MuiOutlinedInput-input": {
+                    py: "12px"
+                  }
+                }}
+              />
+              {emailError && (
+                <FormHelperText
+                  error={emailError}
+                  sx={{ alignSelf: "flex-start", margin: "0 0 0 3px" }}
+                >
+                  Invalid Email!
+                </FormHelperText>
+              )}
+            </Box>
+
+            <Box
+              sx={{ 
+                display: "flex",
+                flexDirection: "column",
+                gap: 0.8
+              }}
+            >
+              <Typography fontWeight={510}>
+                Password
+                <Typography component="span" color="error" fontWeight={510}> *</Typography>
+              </Typography>
+              <OutlinedInput
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={handlePasswordChange}
+                id="password"
+                placeholder="Create password"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <LockRoundedIcon sx={{ color: "#A2A2A2", fontSize: "1rem" }} />
+                  </InputAdornment>
+                }
+                endAdornment={
+                  <InputAdornment position="end">
+                    <Tooltip title={showPassword ? "Show password" : "Hide password"}>
+                      <IconButton 
+                        onClick={handleTogglePassword} edge="end"
+                        sx={{
+                          padding: "4px",
+                          marginRight: "-4px"
+                        }}
+                      >
+                        {
+                          showPassword ? 
+                          <Visibility sx={{ fontSize: "1.2rem" }} /> : 
+                          <VisibilityOff sx={{ fontSize: "1.2rem" }} />
+                        }
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                }
+                sx={{
+                  width: "100%",
+                  borderRadius: 3,
+                  "& .MuiOutlinedInput-input": {
+                    py: "12px"
+                  }
+                }}
+              />
+              {passwordError && (
+                <FormHelperText
+                  error={passwordError}
+                  sx={{ alignSelf: "flex-start", margin: "0 0 0 3px" }}
+                >
+                  Must be at least 8 characters!
+                </FormHelperText>
+              )}
+            </Box>
+
+            {
+              signupError && 
+              (
+                <Typography sx={{ color: "#D3302F", fontWeight: 600, textAlign: "center" }}>
+                  Email has been used!
+                </Typography>
+              )
+            }
+            
+            <CustomSubmitButton 
+              buttonName="Sign Up"
+              handleClick={handleFormSubmit}
+              isLoading={isLoading}
+              isSuccess={isSuccess}
+              props={{
+                mt: 1.2,
+                borderRadius: 3,
+                py: 1                                                                 
+              }}
+            />
+
+            <Typography sx={{ color: "text.primary", textAlign: "center", mt: 2 }}>
+              Already have an account?{" "}
+              <Typography 
+                component={Link}
+                to="/login"
+                sx={{ 
+                  color: "primary.dark", 
+                  cursor: "pointer", 
+                  textDecoration: "none",
+                  fontWeight: 600
+                }}
+              >
+                Login
+              </Typography>
             </Typography>
-          </Typography>
+          </Box>
         </Box>
       </Paper>
     </Container>

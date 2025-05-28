@@ -1,5 +1,18 @@
 import { useState, useEffect } from "react"
 
+export const useDelayRedirect = (isSuccess, setShouldRedirect) => {
+  useEffect(() => {
+    if (isSuccess) {
+      // Delay for 3 seconds before redirect
+      const timeout = setTimeout(() => {
+        setShouldRedirect(true)
+      }, 3000)
+
+      return () => clearTimeout(timeout)
+    }
+  }, [isSuccess])
+}
+
 export const useScreenSize = () => {
   // Custom hook to track the screen size
   const [screenWidth, setScreenWidth] = useState(window.innerWidth)

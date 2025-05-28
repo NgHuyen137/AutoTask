@@ -1,6 +1,10 @@
-import { useRef } from "react"
-import { Navigate } from "react-router"
-import { useAuthContext, usePlannerContext } from "~/hooks/useContext"
+import { useRef, useEffect } from "react"
+import { useLayoutContext, usePlannerContext, useAuthContext } from "~/hooks/useContext"
+import { useFetchUser } from "~/hooks/useQuery"
+import { useDelayRedirect } from "~/hooks/useEffect"
+
+import Spinner from "~/components/ui/Spinner"
+
 import Calendar from "./Calendar/Calendar"
 import AppBar from "~/components/AppBar/AppBar"
 import SideBar from "~/components/SideBar/SideBar"
@@ -11,7 +15,8 @@ import Box from "@mui/material/Box"
 import Container from "@mui/material/Container"
 
 export default function Planner() {
-  const { accessToken } = useAuthContext()
+  const { setUser } = useAuthContext()
+  const { isLoggingOut, logoutSuccess, isLoggedOut, setIsLoggedOut } = useLayoutContext()
   const { openTaskSidebar, taskSidebarWidth } = usePlannerContext()
   const menuButtonRef = useRef(null)
   const taskSidebarRef = useRef(null)
@@ -20,8 +25,23 @@ export default function Planner() {
   const taskCreateFormRef = useRef(null)
   const calendarRef = useRef(null)
 
-  if (!accessToken) 
-    setTimeout(() => {return}, 10000)
+  const { currentUser, isSuccess } = useFetchUser()
+  useEffect(() => {
+    if (isSuccess) {
+      setUser(currentUser)
+      setIsLoggedOut(false)
+    }
+  }, [isSuccess])
+
+  useDelayRedirect(logoutSuccess, setIsLoggedOut)
+
+  if (isLoggingOut || (logoutSuccess && !isLoggedOut))
+    return (
+      <Spinner />
+    )
+
+  if (isLoggedOut)
+    return <Navigate to="/login" replace={true} />
 
   return (
     <Container

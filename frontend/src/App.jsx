@@ -1,6 +1,4 @@
 import GlobalStyles from "@mui/material/GlobalStyles"
-import Planner from "./pages/Planner/Planner"
-import { PlannerProvider } from "./context/PlannerContext"
 
 function App() {
   return (
