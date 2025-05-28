@@ -1,5 +1,5 @@
 import validator from "validator"
-import { Link } from "react-router"
+import { Link } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { useSendPasswordResetEmail } from "~/hooks/useMutation"
 

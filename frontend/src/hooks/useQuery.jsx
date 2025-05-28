@@ -1,11 +1,11 @@
 import validator from "validator"
 import { useQuery } from "@tanstack/react-query"
 import { 
-  fetchUserByEmailAPI,
+  fetchUserAPI,
   verifyEmailAPI,
   verifyPasswordResetTokenAPI,
   fetchAllSchedulingHoursAPI, 
-  fetchAllTasksAPI 
+  fetchAllTasksAPI
 } from "~/apis"
 import { usePlannerContext } from "~/hooks/useContext"
 
@@ -35,15 +35,17 @@ export const useFetchAllTasks = () => {
 }
 
 // For User
-export const useFetchUserByEmail = (email) => {
-  const { data: user } = useQuery({
-    queryKey: ["users", email],
-    queryFn: () => fetchUserByEmailAPI(email),
-    enabled: validator.isEmail(email),
+export const useFetchUser = () => {
+  const { data: currentUser, isSuccess } = useQuery({
+    queryKey: ["user"],
+    queryFn: () => fetchUserAPI(),
     retry: false
   })
 
-  return user
+  return {
+    currentUser,
+    isSuccess
+  }
 }
 
 export const useVerifyEmail = (verifyToken) => {
@@ -58,12 +60,16 @@ export const useVerifyEmail = (verifyToken) => {
 }
 
 export const useVerifyPasswordResetToken = (resetToken) => {
-  const { data: verifyResponse } = useQuery({
+  const { data: verifyResponse, isLoading, isSuccess } = useQuery({
     queryKey: ["resetTokens", resetToken],
     queryFn: () => verifyPasswordResetTokenAPI(resetToken),
     enabled: !!resetToken,
     retry: false
   })
 
-  return verifyResponse
+  return {
+    verifyResponse,
+    isLoading,
+    isSuccess
+  }
 }

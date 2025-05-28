@@ -1,6 +1,10 @@
-import { useState, useRef, useEffect } from "react"
-import { useLayoutContext, usePlannerContext } from "~/hooks/useContext"
+import { NavLink } from "react-router-dom"
+import { useMediaQuery } from "@mui/material"
+import { useRef, useEffect } from "react"
+import { useAuthContext, useLayoutContext, usePlannerContext } from "~/hooks/useContext"
 import { useScreenSize } from "~/hooks/useEffect"
+import { useLogout } from "~/hooks/useMutation"
+
 import Box from "@mui/material/Box"
 import Drawer from "@mui/material/Drawer"
 import List from "@mui/material/List"
@@ -9,16 +13,20 @@ import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import ListItemText from "@mui/material/ListItemText"
 import SvgIcon from "@mui/material/SvgIcon"
+import Divider from "@mui/material/Divider"
+import Typography from "@mui/material/Typography"
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined"
 import AssignmentTurnedInOutlinedIcon from "@mui/icons-material/AssignmentTurnedInOutlined"
 import DonutLargeOutlinedIcon from "@mui/icons-material/DonutLargeOutlined"
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded"
+import PermIdentityRoundedIcon from "@mui/icons-material/PermIdentityRounded"
 
 const sideBarItems = [
-  { Name: "Planner", Icon: CalendarTodayOutlinedIcon },
-  { Name: "Tasks", Icon: AssignmentTurnedInOutlinedIcon },
-  { Name: "Analytics", Icon: DonutLargeOutlinedIcon },
-  { Name: "Scheduling Hours", Icon: ScheduleOutlinedIcon }
+  { Name: "Planner", Icon: CalendarTodayOutlinedIcon, path: "/planner" },
+  { Name: "Tasks", Icon: AssignmentTurnedInOutlinedIcon, path: "/tasks" },
+  { Name: "Analytics", Icon: DonutLargeOutlinedIcon, path: "/analytics" },
+  { Name: "Scheduling Hours", Icon: ScheduleOutlinedIcon, path: "/scheduling-hours" }
 ]
 
 const useSidebarMounted = () => {
@@ -35,10 +43,12 @@ const useSidebarMounted = () => {
 }
 
 export default function SideBar({ menuButtonRef }) {
+  const isMobile = useMediaQuery("(max-width: 499px)")
   const sidebarScreenSizeThreshold = 800 // Move Sidebar to the top right when screen size changes
   const screenWidth = useScreenSize()
 
   const { showTaskCreatePopup } = usePlannerContext()
+  const { user, setUser, setAccessToken } = useAuthContext()
 
   const {
     openSidebar,
@@ -46,7 +56,9 @@ export default function SideBar({ menuButtonRef }) {
     lockSidebar,
     setLockSidebar,
     hoverPin,
-    setHoverPin
+    setHoverPin,
+    setIsLoggingOut,
+    setLogoutSuccess
   } = useLayoutContext()
 
   const sidebarPaperRef = useRef(null)
@@ -72,6 +84,21 @@ export default function SideBar({ menuButtonRef }) {
       localStorage.setItem("openSidebar", false)
     }
   }
+
+  const { logout, isLoading, isSuccess } = useLogout()
+  const handleLogout = () => {
+    logout({
+      onSuccess: () => {
+        setAccessToken(null)
+        setUser(null)
+      }
+    })
+  }
+
+  useEffect(() => {
+    setIsLoggingOut(isLoading)
+    setLogoutSuccess(isSuccess)
+  }, [isLoading, isSuccess])
 
   return (
     <Drawer
@@ -122,7 +149,13 @@ export default function SideBar({ menuButtonRef }) {
         role="presentation"
         sx={{ height: "100%" }}
       >
-        <List sx={{ height: "100%" }}>
+        <List 
+          sx={{ 
+            height: "100%",
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
           <ListItem
             sx={{
               justifyContent: "flex-end",
@@ -194,46 +227,134 @@ export default function SideBar({ menuButtonRef }) {
               gap: 1
             }}
           >
-            {sideBarItems.map(({ Name, Icon }) => (
+            {sideBarItems.map(({ Name, Icon, path }) => (
               <ListItem key={Name} sx={{ padding: 0 }}>
-                <ListItemButton
-                  sx={(theme) => ({
-                    "&:hover": {
-                      backgroundColor:
-                        theme.sideBar.colorSchemes.hover.background,
-                      "& .MuiListItemIcon-root, & .MuiListItemText-root": {
-                        color: theme.sideBar.colorSchemes.hover.content
-                      }
-                    },
-                    padding: "4px 8px"
+                <NavLink
+                  to={path}
+                  style={({ isActive }) => ({
+                    textDecoration: "none",
+                    width: "100%",
+                    display: "block"
                   })}
                 >
-                  <ListItemIcon
-                    sx={(theme) => ({
-                      color: theme.sideBar.colorSchemes.standard.content,
-                      minWidth: "40px",
-                      paddingLeft: "2px"
-                    })}
-                  >
-                    <Icon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    sx={(theme) => ({
-                      visibility:
-                        openSidebar || lockSidebar ? "visible" : "hidden",
-                      whiteSpace: "nowrap",
-                      color: theme.sideBar.colorSchemes.standard.content,
-                      marginTop: "8px",
-                      "& .MuiTypography-root": {
-                        fontWeight: 500
-                      }
-                    })}
-                    primary={Name}
-                  ></ListItemText>
-                </ListItemButton>
+                  {({ isActive }) => (
+                    <ListItemButton
+                      sx={{
+                        backgroundColor: isActive ? "#e2eafc" : "primary.dark",
+                        "& .MuiListItemIcon-root, & .MuiListItemText-root": {
+                          color: isActive ? "primary.dark" : "#FFFFFF"
+                        },
+                        "&:hover": {
+                          backgroundColor: (theme) =>
+                            theme.sideBar.colorSchemes.hover.background,
+                          "& .MuiListItemIcon-root, & .MuiListItemText-root": {
+                            color: (theme) =>
+                              theme.sideBar.colorSchemes.hover.content
+                          }
+                        },
+                        padding: "4px 8px"
+                      }}
+                    >
+                      <ListItemIcon
+                        sx={{
+                          minWidth: "40px",
+                          paddingLeft: "2px"
+                        }}
+                      >
+                        <Icon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText
+                        sx={{
+                          visibility:
+                            openSidebar || lockSidebar ? "visible" : "hidden",
+                          whiteSpace: "nowrap",
+                          marginTop: "8px",
+                          "& .MuiTypography-root": {
+                            fontWeight: 500
+                          }
+                        }}
+                        primary={Name}
+                      />
+                    </ListItemButton>
+                  )}
+                </NavLink>
               </ListItem>
             ))}
           </Box>
+
+          {
+            isMobile &&
+            (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-end",
+                  flex: 1,
+                  gap: 1,
+                  padding: 1
+                }}
+              >
+                <Divider sx={{ backgroundColor: "#ccdbfd" }} />
+                <ListItem sx={{ padding: 0 }}>
+                  <ListItemButton>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "20px"
+                      }}
+                    >
+                      <PermIdentityRoundedIcon 
+                        sx={{ fontSize: "1.25rem", color: "#FFF" }} 
+                      />
+                      <Box>
+                        <Typography 
+                          sx={{ 
+                            fontSize: "0.9rem",
+                            color: "#FFFFFF", 
+                            fontWeight: 600,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: "160px"
+                          }}
+                        >
+                          {user ? user["name"] : " "}
+                        </Typography>
+                        <Typography 
+                          sx={{ 
+                            color: "#FFFFFF",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: "160px"
+                          }}
+                        >
+                          {user ? user["email"] : " "}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </ListItemButton>
+                </ListItem>
+
+                <Divider sx={{ backgroundColor: "#ccdbfd" }} />
+                
+                <ListItem sx={{ padding: 0 }}>
+                  <ListItemButton
+                    onClick={handleLogout}
+                  >
+                    <ListItemIcon sx={{ minWidth: "40px" }}>
+                      <LogoutRoundedIcon sx={{ fontSize: "1.25rem", color: "#FFF" }} />
+                    </ListItemIcon>
+                    <Typography sx={{ color: "#FFFFFF", fontSize: "0.9rem", fontWeight: 500 }}>
+                      Log out
+                    </Typography>
+                  </ListItemButton>
+                </ListItem>
+              </Box>
+            )
+          }
         </List>
       </Box>
     </Drawer>

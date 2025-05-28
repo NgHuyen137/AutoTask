@@ -7,7 +7,9 @@ import {
   loginAPI,
   sendEmailVerificationAPI,
   sendPasswordResetEmailAPI,
-  resetPasswordAPI
+  resetPasswordAPI,
+  logoutAPI,
+  refreshAccessTokenAPI
 } from "~/apis"
 import { usePlannerContext } from "~/hooks/useContext"
 
@@ -182,6 +184,53 @@ export const useResetPassword = () => {
     resetPassword,
     isLoading,
     isSuccess,
+    reset
+  }
+}
+
+export const useLogout = () => {
+  const queryClient = useQueryClient()
+
+  const {
+    mutate: logout,
+    isLoading,
+    isSuccess,
+    reset
+  } = useMutation({
+    mutationFn: () => logoutAPI(),
+    onSuccess: () => {
+      queryClient.removeQueries(["users"])
+      queryClient.removeQueries(["tasks"])
+      queryClient.removeQueries(["schedulingHours"])
+      queryClient.removeQueries(["verifyTokens"])
+      queryClient.removeQueries(["resetTokens"])
+    }
+  })
+
+  return {
+    logout,
+    isLoading,
+    isSuccess,
+    reset
+  }
+}
+
+export const useRefreshAccessToken = () => {
+  const {
+    mutate: refreshAccessToken,
+    isLoading,
+    isSuccess,
+    error,
+    reset
+  } = useMutation({
+    mutationFn: () => refreshAccessTokenAPI()
+  })
+
+  return {
+    refreshAccessToken,
+    isLoading,
+    isSuccess,
+    error,
     reset
   }
 }

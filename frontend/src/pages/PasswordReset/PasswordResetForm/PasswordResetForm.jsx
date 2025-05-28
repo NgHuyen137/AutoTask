@@ -1,10 +1,11 @@
 import { useMediaQuery } from "@mui/material"
-import { useParams, Link } from "react-router"
+import { useParams, Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
 import { useVerifyPasswordResetToken } from "~/hooks/useQuery"
 import { useResetPassword } from "~/hooks/useMutation"
 
+import Spinner from "~/components/ui/Spinner"
 import PasswordResetRequestForm from "../PasswordResetRequestForm/PasswordResetRequestForm"
 import CustomSubmitButton from "~/components/ui/CustomSubmitButton"
 
@@ -23,7 +24,6 @@ import LockRoundedIcon from "@mui/icons-material/LockRounded"
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded"
 
 export default function PasswordResetForm() {
-  const [statusCode, setStatusCode] = useState(400)
   const [verifyEmail, setVerifyEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -35,16 +35,16 @@ export default function PasswordResetForm() {
   const [resetPasswordError, setResetPasswordError] = useState(false)
 
   const { resetToken } = useParams() 
-  const verifyResponse = useVerifyPasswordResetToken(resetToken)
+  const { 
+    verifyResponse, 
+    isLoading: isVerifying, 
+    isSuccess: isVerifySuccess
+  } = useVerifyPasswordResetToken(resetToken)
 
   useEffect(() => {
-    if (verifyResponse) {
-      if ("status_code" in verifyResponse && "email" in verifyResponse) {
-        setStatusCode(verifyResponse["status_code"])
-        setVerifyEmail(verifyResponse["email"])
-      }
-    }
-  }, [verifyResponse])
+    if (isVerifySuccess) 
+      setVerifyEmail(verifyResponse["email"])
+  }, [isVerifySuccess])
 
   const handlePasswordChange = (event) => {
     const minimumLength = 8
@@ -82,7 +82,11 @@ export default function PasswordResetForm() {
     setShowConfirmPassword((prev) => !prev)
   }
 
-  const { resetPassword, isLoading, isSuccess, reset } = useResetPassword()
+  const { 
+    resetPassword, 
+    isLoading: isResetting, 
+    isSuccess: isResetSuccess
+  } = useResetPassword()
   const handleResetPassword = () => {
     if (!passwordError && !confirmPasswordError && !resetPasswordError) {
       const data = {
@@ -99,7 +103,10 @@ export default function PasswordResetForm() {
 
   const isLessThan464 = useMediaQuery("(max-width: 464px)")
 
-  if (statusCode === 200) {
+  if (isVerifying) 
+    return <Spinner />
+
+  if (isVerifySuccess) {
     return (
       <Container
         disableGutters
@@ -256,7 +263,7 @@ export default function PasswordResetForm() {
             }
 
             {
-              isSuccess &&
+              isResetSuccess &&
               (
                 <Typography sx={{ color: "#6cba87", fontWeight: 600, textAlign: "center" }}>
                   Your password has been reset successfully!
@@ -274,8 +281,8 @@ export default function PasswordResetForm() {
               <CustomSubmitButton 
                 buttonName="Reset password"
                 handleClick={handleResetPassword}
-                isLoading={isLoading}
-                isSuccess={isSuccess}
+                isLoading={isResetting}
+                isSuccess={isResetSuccess}
                 props={{
                   mt: 1.2,
                   borderRadius: 3,
