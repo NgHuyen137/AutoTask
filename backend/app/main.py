@@ -3,13 +3,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.db.mongodb import Database
+from app.config.security import security_settings
 from app.exceptions.baseExceptions import creat_exception_handler
 from app.exceptions.passwordExceptions import PasswordAndConfirmPasswordMismatchError
 from app.exceptions.schedulingHourExceptions import SchedulingHourNotFoundError
 from app.exceptions.taskExceptions import TaskAutoScheduleError, TaskNotFoundError
-from app.exceptions.userExceptions import (
+from app.exceptions.authExceptions import (
   AccountNotVerifiedError,
   InvalidTokenError,
   UnauthorizedError,
@@ -49,6 +51,8 @@ app = FastAPI(
   redoc_url=f"{version_prefix}/redoc",
   openapi_url=f"{version_prefix}/openapi.json",
 )
+
+app.add_middleware(SessionMiddleware, secret_key=security_settings.FASTAPI_SECRET_KEY)
 
 # Add CORSMiddleware to allow the frontend to access the API
 app.add_middleware(

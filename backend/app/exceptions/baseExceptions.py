@@ -14,6 +14,9 @@ def creat_exception_handler(
 	status_code: int, initial_detail: Any
 ) -> Callable[[Request, BaseError], JSONResponse]:
 	async def exception_handler(request: Request, exc: BaseError):
-		return JSONResponse(content=initial_detail, status_code=status_code)
+		return JSONResponse(
+			content={"detail": initial_detail}, 
+			status_code=status_code
+		)
 
 	return exception_handler

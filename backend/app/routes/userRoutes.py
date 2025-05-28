@@ -1,14 +1,11 @@
-from fastapi import APIRouter
-from pydantic import EmailStr
+from typing import Annotated
+from fastapi import APIRouter, Depends
 
-from app.services.userService.crud import get_user_by_email
-from app.exceptions.userExceptions import UserNotFoundError
+from app.models.userModel import User
+from app.dependencies.auth import get_current_user
 
 user_router = APIRouter()
 
-@user_router.get("/users")
-async def get_single_user_by_email(email: EmailStr):
-  user = await get_user_by_email(email)
-  if user:
-    return user
-  raise UserNotFoundError()
+@user_router.get("/users/me")
+async def get_user(current_user: Annotated[User, Depends(get_current_user)]):
+  return current_user
