@@ -23,21 +23,21 @@ async def login_user_account(
       expires_delta=timedelta(days=security_settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
     return {
-      "user_id": user.id, 
+      "user": user, 
       "is_verified": user.is_verified, 
       "access_token": access_token, 
       "refresh_token": refresh_token
     }
   if user and not user.is_verified:
     return { 
-      "user_id": user.id, 
+      "user": user, 
       "is_verified": user.is_verified,
       "access_token": None,
       "refresh_token": None
     }
   if not user:
     return { 
-      "user_id": None, 
+      "user": None, 
       "is_verified": False,
       "access_token": None,
       "refresh_token": None
@@ -54,5 +54,8 @@ async def refresh_access_token(refresh_token: str):
         new_access_token = create_access_token(
           {"sub": str(user.id), "email": user.email, "jti": str(uuid.uuid4())}
         )
-        return {"access_token": new_access_token}
+        return {
+          "access_token": new_access_token,
+          "user": user
+        }
   return None

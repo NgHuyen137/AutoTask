@@ -1,13 +1,25 @@
 from typing import Annotated, Optional
+from datetime import timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, Response, status
-from fastapi.responses import JSONResponse
+import uuid
+import requests
+from fastapi import (
+  APIRouter, 
+  BackgroundTasks, 
+  Cookie, 
+  Depends, 
+  Request, 
+  Response, 
+  status
+)
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from authlib.integrations.starlette_client import OAuth
 
 from app.config.security import security_settings
 from app.config.frontend import frontend_settings
 from app.exceptions.passwordExceptions import PasswordAndConfirmPasswordMismatchError
-from app.exceptions.userExceptions import (
+from app.exceptions.authExceptions import (
   InvalidTokenError,
   UnauthorizedError,
   EmailVerificationError,
@@ -15,8 +27,9 @@ from app.exceptions.userExceptions import (
   UserAlreadyExistsError,
   UserNotFoundError
 )
+from app.dependencies.auth import get_token_from_request
 from app.schemas.passwordResetSchema import PasswordResetSchema
-from app.schemas.userSchema import TokenResponse, UserCreate
+from app.schemas.userSchema import UserCreate
 from app.schemas.emailVerificationSchema import EmailVerificationSchema
 from app.services.authService.emailVerification import verify_email_token
 from app.services.authService.login import login_user_account, refresh_access_token
@@ -24,18 +37,35 @@ from app.services.authService.logout import logout_user_account
 from app.services.authService.resetPassword import send_confirm_reset_password
 from app.services.authService.signup import signup_user_account
 from app.services.mailService.sendEmail import send_email_verification_link
-from app.services.userService.crud import get_user_by_email
-from app.utils.auth import get_password_hash, create_url_safe_token
+from app.services.userService.crud import get_user_by_email, create_user_with_google
+from app.utils.auth import get_password_hash, create_url_safe_token, create_access_token
 
 auth_router = APIRouter(prefix="/auth")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth = OAuth()
+oauth.register(
+  name="google",
+  client_id=security_settings.GOOGLE_CLIENT_ID,
+  client_secret=security_settings.GOOGLE_CLIENT_SECRET,
+  authorize_url="https://accounts.google.com/o/oauth2/auth",
+  authorize_params=None,
+  access_token_url="https://accounts.google.com/o/oauth2/token",
+  access_token_params=None,
+  refresh_token_url=None,
+  authorize_state=security_settings.SECRET_KEY,
+  redirect_uri=security_settings.REDIRECT_URL,
+  jwks_uri="https://www.googleapis.com/oauth2/v3/certs",
+  client_kwargs={"scope": "openid profile email"}
+)
 
 
 @auth_router.post("/signup")
 async def signup(
   response: Response, background_tasks: BackgroundTasks, user: UserCreate
 ):
+  """
+  Signup a new user account.
+  """
   new_user = await signup_user_account(background_tasks, user)
   if new_user:
     response.status_code = status.HTTP_201_CREATED
@@ -43,14 +73,31 @@ async def signup(
   raise UserAlreadyExistsError()
 
 
-@auth_router.post("/login")
-async def login(
-  response: Response, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+@auth_router.post("/login/password")
+async def login_password(
+  form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
+  """
+  Login a user account and return access token and refresh token.
+  """
   res = await login_user_account(form_data)
   if res["access_token"] and res["refresh_token"]:
+    json_response = JSONResponse(
+      content={
+        "access_token": res["access_token"],
+        "user": {
+          "email": res["user"].email,
+          "name": res["user"].name,
+          "picture": res["user"].picture,
+          "auth_providers": res["user"].auth_providers,
+          "is_verified": res["user"].is_verified
+        }
+      },
+      status_code=status.HTTP_200_OK
+    )
+
     # Store refresh token in httpOnly cookie
-    response.set_cookie(
+    json_response.set_cookie(
       key="refresh_token",
       value=res["refresh_token"],
       httponly=True,
@@ -58,36 +105,142 @@ async def login(
       samesite="none",
       max_age=security_settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
     )
-    return TokenResponse(access_token=res["access_token"], token_type="bearer")
+    return json_response
   
-  if res["user_id"] and not res["is_verified"]:
+  if res["user"] and not res["is_verified"]:
     raise EmailVerificationError()
 
-  if not res["user_id"]:
+  if not res["user"]:
     raise UnauthorizedError()
+  
+
+@auth_router.get("/login/google")
+async def login_google(request: Request):
+  """
+  Redirect to Google OAuth2 login page.
+  """ 
+  return await oauth.google.authorize_redirect(
+    request, 
+    security_settings.REDIRECT_URL, 
+    prompt="consent"
+  )
+
+
+@auth_router.get("/callback")
+async def login_google_callback(request: Request):
+  # Exchange token
+  try:
+    token = await oauth.google.authorize_access_token(request)
+  except Exception as e:
+    raise UnauthorizedError()
+
+  # Fetch user info from Google
+  try:
+    user_info_endpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
+    headers = {"Authorization": f"Bearer {token["access_token"]}"}
+    google_response = requests.get(user_info_endpoint, headers=headers)
+    user_info = google_response.json()
+  except Exception as e:
+    raise UnauthorizedError()
+
+  # Extract user information
+  user = token.get("userinfo")
+  google_id = user.get("sub")
+  user_email = user.get("email")
+  user_name = user_info.get("name")
+  user_pic = user_info.get("picture")
+
+  # Check if the email has been used
+  existing_user = await get_user_by_email(user_email)
+  if not existing_user:
+    # Create new account
+    new_user = await create_user_with_google(
+      name=user_name,
+      email=user_email,
+      google_id=google_id,
+      picture=user_pic
+    )
+
+  elif "google" not in existing_user.auth_providers:
+    # Update existing user with Google info
+    existing_user.google_id = google_id
+    existing_user.picture = user_pic
+    existing_user.auth_providers.append("google")
+    await existing_user.save()
+
+  # Create JWT token
+  user_id = existing_user.id if existing_user else new_user.id
+  access_token = create_access_token(
+    {"sub": str(user_id), "email": user_email, "jti": str(uuid.uuid4())}
+  )
+
+  # Create refresh token
+  refresh_token = create_access_token(
+    {"sub": str(user_id), "email": user_email, "jti": str(uuid.uuid4())},
+    expires_delta=timedelta(days=security_settings.REFRESH_TOKEN_EXPIRE_DAYS)
+  )
+
+  response = RedirectResponse(url=security_settings.FRONTEND_URL)
+
+  response.set_cookie(
+    key="access_token",
+    value=access_token,
+    httponly=True,
+    secure=True,
+    samesite="none",
+    max_age=security_settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+  )
+
+  response.set_cookie(
+    key="refresh_token",
+    value=refresh_token,
+    httponly=True,
+    secure=True,
+    samesite="none",
+    max_age=security_settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+  )
+
+  return response
 
 
 @auth_router.post("/refresh")
 async def refresh(refresh_token: Optional[str] = Cookie(None, alias="refresh_token")):
+  """
+  Refresh the access token using the refresh token.
+  """
   if refresh_token:
     result = await refresh_access_token(refresh_token)
     if result:
-      return TokenResponse(access_token=result["access_token"], token_type="bearer")
+      return JSONResponse(
+        content={
+          "access_token": result["access_token"],
+          "user": {
+            "email": result["user"].email,
+            "name": result["user"].name,
+            "is_verified": result["user"].is_verified
+          }
+        },
+        status_code=status.HTTP_200_OK
+      )
   raise RefreshTokenExpiredError()
 
 
 @auth_router.post("/logout")
 async def logout(
   response: Response,
-  access_token: str = Depends(oauth2_scheme),
+  access_token: str = Depends(get_token_from_request),
   refresh_token: Optional[str] = Cookie(None, alias="refresh_token")
 ):
   """
   Logout the user by invalidating the access token and refresh token.
   """
   await logout_user_account(access_token, refresh_token)
+  response.delete_cookie(key="access_token")
   response.delete_cookie(key="refresh_token")
-  return {"message": "Logout successfully!"}
+  return JSONResponse(
+    content={"message": "Logout successfully!"},
+    status_code=status.HTTP_200_OK
+  )
 
 
 @auth_router.get("/verify/{token}")
@@ -126,7 +279,10 @@ async def send_verification_link(
   """
   user = await get_user_by_email(data.email)
   if user:
-    verification_token = create_url_safe_token({"email": data.email})
+    verification_token = create_url_safe_token(
+      {"email": data.email},
+      salt="email-verification"
+    )
     verification_link = f"http://{frontend_settings.DOMAIN}/verify/{verification_token}"
     await send_email_verification_link(background_tasks, data.email, verification_link)
     return JSONResponse(
@@ -146,7 +302,7 @@ async def password_reset_confirm(
   """
   success = await send_confirm_reset_password(background_tasks, data.email)
   if not success:
-    raise UnauthorizedError()
+    raise UserNotFoundError()
   return JSONResponse(
     content={"message": "Password reset email sent successfully!"},
     status_code=status.HTTP_200_OK
