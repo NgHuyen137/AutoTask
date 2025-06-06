@@ -11,7 +11,7 @@ const useDefaultSchedulingHour = (task, updateTask) => {
   // Set default Scheduling Hour to Active Hours
   useEffect(() => {
     if (task.smartScheduling && !task.schedulingHour)
-      updateTask("schedulingHour", "67c4a91afce6984b9a6da6cd")
+      updateTask("schedulingHour", "67fbef9212ab127c7d2de1f7")
     if (!task.smartScheduling && task.schedulingHour)
       updateTask("schedulingHour", null)
   }, [task.smartScheduling])
@@ -27,7 +27,7 @@ export default function SchedulingHourSelector({ schedulingHours, taskState }) {
       <InputLabel sx={{ marginTop: "14px" }}>Hours</InputLabel>
       <Select
         value={
-          task.schedulingHour ? task.schedulingHour : "67c4a91afce6984b9a6da6cd"
+          task.schedulingHour ? task.schedulingHour : "67fbef9212ab127c7d2de1f7"
         }
         onChange={(event) => updateTask("schedulingHour", event.target.value)}
         onMouseDown={(e) => e.stopPropagation()}

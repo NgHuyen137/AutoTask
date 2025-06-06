@@ -8,14 +8,39 @@ import IconButton from "@mui/material/IconButton"
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded"
 import RemoveCircleOutlineRoundedIcon from "@mui/icons-material/RemoveCircleOutlineRounded"
 
-const useDefaultDuration = (hours, minutes, updateField, task, updateTask) => {
+const useDefaultDuration = (
+  label, 
+  hours, 
+  setHours, 
+  minutes, 
+  setMinutes, 
+  task, 
+  updateTask
+) => {
   useEffect(() => {
-    if (task.smartScheduling && !task.duration)
-      updateTask(updateField, {
-        hours,
-        minutes
-      })
-    if (!task.smartScheduling && task.duration) updateTask(updateField, null)
+    if (task.smartScheduling) {
+      if (!task.duration && label === "Duration")
+        updateTask("duration", {
+          hours,
+          minutes
+        })
+      if (task.duration && label === "Duration") {
+        updateTask("duration", {
+          "hours": task.duration.hours,
+          "minutes": task.duration.minutes
+        })
+        setHours(task.duration.hours)
+        setMinutes(task.duration.minutes)
+      }
+      if (task.split && label === "Min duration") {
+        updateTask("split", {
+          "hours": task.split.hours,
+          "minutes": task.split.minutes
+        })
+        setHours(task.split.hours)
+        setMinutes(task.split.minutes)
+      }
+    }
   }, [task.smartScheduling])
 }
 
@@ -46,15 +71,29 @@ const useSplit = (
   setHours,
   setMinutes,
   setStrDuration,
+  task,
   updateTask
 ) => {
-  // Reset state of Min Duration
   useEffect(() => {
+    // Reset state of Min Duration
     if (!split && label === "Min duration") {
       setHours(0)
       setMinutes(0)
       setStrDuration("")
       updateTask("split", null)
+    }
+
+    // Set default split
+    if (split && !task.split && label === "Min duration") {
+      setHours(0)
+      setMinutes(30)
+      setStrDuration("30 mins")
+      updateTask("split", {
+        "min_duration": {
+          "hours": 0,
+          "minutes": 30
+        }
+      })
     }
   }, [split])
 }
@@ -62,15 +101,13 @@ const useSplit = (
 export default function DurationInput({ props, taskState }) {
   const { label, updateField, split } = props
   const { task, updateTask } = taskState
-  const [hours, setHours] = useState(0)
-  const [minutes, setMinutes] =
-    label === "Duration" ? useState(30) : useState(0)
-  const [strDuration, setStrDuration] =
-    label === "Duration" ? useState("30 mins") : useState("")
+  const [hours, setHours] = useState(0)  
+  const [minutes, setMinutes] = useState(30)
+  const [strDuration, setStrDuration] = useState("30 mins")
 
   const isLessThan400 = useMediaQuery("(max-width: 399px)")
 
-  useDefaultDuration(hours, minutes, updateField, task, updateTask)
+  useDefaultDuration(label, hours, setHours, minutes, setMinutes, task, updateTask)
   useChangeDuration(
     label,
     hours,
@@ -79,7 +116,7 @@ export default function DurationInput({ props, taskState }) {
     updateField,
     updateTask
   )
-  useSplit(split, label, setHours, setMinutes, setStrDuration, updateTask)
+  useSplit(split, label, setHours, setMinutes, setStrDuration, task, updateTask)
 
   const formatStrDuration = (event) => {
     const strDuration = event.target.value

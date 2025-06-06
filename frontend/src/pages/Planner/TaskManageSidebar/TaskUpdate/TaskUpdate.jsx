@@ -1,9 +1,9 @@
-import dayjs from "dayjs"
 import { useEffect, useState } from "react"
 import { usePlannerContext } from "~/hooks/useContext"
 import { useTaskState } from "~/hooks/useState"
 import { useUpdateTask, useDeleteTask } from "~/hooks/useMutation"
 import CustomSubmitButton from "~/components/ui/CustomSubmitButton"
+import CustomDeleteDialog from "~/components/ui/CustomDeleteDialog"
 import TaskDetailsUpdate from "./TaskDetailsUpdate/TaskDetailsUpdate"
 import TaskSchedulingUpdate from "./TaskSchedulingUpdate/TaskSchedulingUpdate"
 import Box from "@mui/material/Box"
@@ -41,7 +41,13 @@ export default function TaskUpdate({ taskSidebarRef }) {
 
   const { task, updateTask } = useTaskState() // Used for storing updated data only
   const { updateSingleTask, isLoading, isSuccess, reset } = useUpdateTask()
-  const { mutate: deleteSingleTask } = useDeleteTask()
+  const {
+    deleteSingleTask,
+    isLoading: isDeletingTask,
+    isSuccess: isDeletedTask,
+    reset: resetDeleteTask
+  } = useDeleteTask()
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
 
   // Manage errors when updating
   const [taskNameError, setTaskNameError] = useState(false)
@@ -65,7 +71,7 @@ export default function TaskUpdate({ taskSidebarRef }) {
     updateTask("endAt", endAt)
     updateTask("startDate", startDate)
     updateTask("dueDate", dueDate)
-  }, [])
+  }, [targetTask])
 
   const handleUpdateTask = () => {
     // Validate data
@@ -122,7 +128,6 @@ export default function TaskUpdate({ taskSidebarRef }) {
   }
 
   const handleDeleteTask = () => {
-    deleteSingleTask({ id })
     setOpenUpdate(false)
     localStorage.setItem("openUpdate", false)
     setOpenTaskSidebar(false)
@@ -131,6 +136,11 @@ export default function TaskUpdate({ taskSidebarRef }) {
     localStorage.setItem("taskSidebarWidth", defaultTaskSidebarWidth)
     setTargetTask(null)
     localStorage.setItem("targetTask", null)
+
+    setTimeout(() => {
+      deleteSingleTask({ id })
+      resetDeleteTask()
+    }, 1000)
   }
 
   return (
@@ -193,9 +203,11 @@ export default function TaskUpdate({ taskSidebarRef }) {
             flex: 1,
             height: "50px",
             color: "primary.dark",
+            boxShadow: "none !important",
             backgroundColor: "#F7F8FC",
             ":hover": {
-              backgroundColor: "#e5edff"
+              boxShadow: "none !important",
+              backgroundColor: "#e5edff !important"
             }
           }}
         />
@@ -234,7 +246,7 @@ export default function TaskUpdate({ taskSidebarRef }) {
           If you no longer want to keep this Task, you can delete it.
         </Typography>
         <Button
-          onClick={handleDeleteTask}
+          onClick={() => setOpenDeleteDialog(true)}
           startIcon={<DeleteOutlinedIcon sx={{ color: "#DD5555" }} />}
           sx={{
             gridRow: "1 / -1",
@@ -250,6 +262,18 @@ export default function TaskUpdate({ taskSidebarRef }) {
         >
           Delete Task
         </Button>
+        {openDeleteDialog && (
+          <CustomDeleteDialog
+            openDeleteDialogState={{
+              openDeleteDialog,
+              setOpenDeleteDialog
+            }}
+            taskName={targetTask.name}
+            isDeletingTask={isDeletingTask}
+            isDeletedTask={isDeletedTask}
+            handleDeleteTask={handleDeleteTask}
+          />
+        )}
       </Box>
     </Box>
   )

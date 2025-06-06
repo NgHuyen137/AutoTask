@@ -84,7 +84,21 @@ export const useDeleteTask = () => {
     onSuccess: (data, variables) => {
       queryClient.setQueryData(
         ["tasks", { startOfWeek, endOfWeek }],
-        (oldData) => oldData.filter((task) => task._id !== variables.id)
+        (oldData) => {
+          let updatedTasks = oldData.filter((task) => task._id !== variables.id)
+
+          if (data.updated_overdue_tasks) {
+            const updatedOverdueTaskIds = 
+              data.updated_overdue_tasks.map(updated_overdue_task => updated_overdue_task._id)
+            updatedTasks = updatedTasks.map((task) =>
+              updatedOverdueTaskIds.includes(task._id) ? 
+                data.updated_overdue_tasks.find(updated_overdue_task => updated_overdue_task._id === task._id) : 
+                task
+            )
+          }
+
+          return updatedTasks
+        }
       )
     }
   })

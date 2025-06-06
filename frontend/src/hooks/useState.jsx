@@ -19,7 +19,8 @@ export const useTaskState = () => {
   })
 
   const updateTask = (field, value) => {
-    setTask((prev) => ({ ...prev, [field]: value }))
+    if (field !== "split")
+      setTask((prev) => ({ ...prev, [field]: value }))
   }
 
   return { task, updateTask }
