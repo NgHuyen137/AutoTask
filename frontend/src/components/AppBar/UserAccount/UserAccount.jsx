@@ -134,6 +134,7 @@ export default function UserAccount() {
         anchorEl={accountAnchorEl}
         placement="bottom-end"
         transition
+        sx={(theme) => ({ zIndex: theme.zIndex.tooltip })}
       >
         {({ TransitionProps }) => (
           <Grow 

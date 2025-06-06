@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react"
+import { Navigate } from "react-router-dom"
 import { useLayoutContext, usePlannerContext, useAuthContext } from "~/hooks/useContext"
 import { useFetchUser } from "~/hooks/useQuery"
-import { useDelayRedirect } from "~/hooks/useEffect"
 
 import Spinner from "~/components/ui/Spinner"
 
@@ -33,14 +33,13 @@ export default function Planner() {
     }
   }, [isSuccess])
 
-  useDelayRedirect(logoutSuccess, setIsLoggedOut)
 
-  if (isLoggingOut || (logoutSuccess && !isLoggedOut))
+  if (isLoggingOut)
     return (
       <Spinner />
     )
 
-  if (isLoggedOut)
+  if (logoutSuccess)
     return <Navigate to="/login" replace={true} />
 
   return (

@@ -1,9 +1,8 @@
 import validator from "validator"
 import { Link, Navigate } from "react-router-dom"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useLogin } from "~/hooks/useMutation"
 import { useAuthContext } from "~/hooks/useContext"
-import { useDelayRedirect } from "~/hooks/useEffect"
 import { useMediaQuery } from "@mui/material"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
 
@@ -94,7 +93,6 @@ export default function Login() {
       loginAccount(formData, {
         onSuccess: (res) => {
           setAccessToken(res["access_token"])
-          setUser(res["user"])
         },
         onError: (res) => {
           if (res.response.status === 403)
@@ -109,16 +107,14 @@ export default function Login() {
     window.location.href = "http://localhost:8000/api/v1/auth/login/google"
   }
 
-  useDelayRedirect(isSuccess, setIsLoggedIn)
-
   const isLessThan464 = useMediaQuery("(max-width: 464px)")
 
-  if (isLoading || (isSuccess && !isLoggedIn))
+  if (isLoading)
     return (
       <Spinner />
     )
 
-  if (isLoggedIn)
+  if (isSuccess)
     return <Navigate to="/planner" replace={true} />
 
   return (

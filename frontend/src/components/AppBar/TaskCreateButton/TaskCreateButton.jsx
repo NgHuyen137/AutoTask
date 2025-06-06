@@ -283,6 +283,7 @@ export default function TaskCreateButton({ buttonRef, taskCreateFormRef }) {
                     </Typography>
                   )}
                   <Switch
+                    checked={task.smartScheduling}
                     onChange={(event) =>
                       updateTask("smartScheduling", event.target.checked)
                     }

@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react"
 
 export const useDelayRedirect = (isSuccess, setShouldRedirect) => {
+  const [hasStarted, setHasStarted] = useState(false)
+
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && !hasStarted) {
+      setHasStarted(true)
+
       // Delay for 3 seconds before redirect
       const timeout = setTimeout(() => {
         setShouldRedirect(true)
@@ -10,7 +14,7 @@ export const useDelayRedirect = (isSuccess, setShouldRedirect) => {
 
       return () => clearTimeout(timeout)
     }
-  }, [isSuccess])
+  }, [isSuccess, hasStarted])
 }
 
 export const useScreenSize = () => {

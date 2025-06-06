@@ -21,12 +21,12 @@ export default function CustomSubmitButton({
               alignSelf: "end"
             }),
             borderRadius: props?.borderRadius || "40px",
-            boxShadow:
+            boxShadow: props?.boxShadow ||
               "0px 1px 5px 0px rgba(0, 0, 0, 0.06), 0px 2px 2px 0px rgba(0, 0, 0, 0.03), 0px 3px 1px -2px rgba(0, 0, 0, 0.05)",
             fontWeight: 600,
             textTransform: "none",
             "&:hover": {
-              boxShadow:
+              boxShadow: props?.boxShadow ||
                 "0px 1px 5px 0px rgba(0, 0, 0, 0.06), 0px 2px 2px 0px rgba(0, 0, 0, 0.03), 0px 3px 1px -2px rgba(0, 0, 0, 0.05)",
               backgroundColor:
                 props?.backgroundColor === "#D14B58" ? "#bd424e" : "#598aff"
