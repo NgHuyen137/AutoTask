@@ -1,4 +1,3 @@
-import logging
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 
