@@ -13,7 +13,7 @@ from fastapi import (
   status
 )
 from fastapi.responses import JSONResponse, RedirectResponse
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from authlib.integrations.starlette_client import OAuth
 
 from app.config.security import security_settings
@@ -84,14 +84,7 @@ async def login_password(
   if res["access_token"] and res["refresh_token"]:
     json_response = JSONResponse(
       content={
-        "access_token": res["access_token"],
-        "user": {
-          "email": res["user"].email,
-          "name": res["user"].name,
-          "picture": res["user"].picture,
-          "auth_providers": res["user"].auth_providers,
-          "is_verified": res["user"].is_verified
-        }
+        "access_token": res["access_token"]
       },
       status_code=status.HTTP_200_OK
     )
