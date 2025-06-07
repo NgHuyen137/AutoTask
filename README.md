@@ -6,11 +6,11 @@ This project aims to minimize the time required for manual task assignment by au
 - **Rescheduling:** Reschedule overdue tasks when there are available slots.
 - **Task Management:** 
   - Allow users to create, read, update, and delete tasks.
-  - Search and filter tasks (*In-progress*).
+  - Search and filter tasks *(In-progress)*.
 - **User Management:** 
   - Allow users to Sign-up and Log-in with email and password.
   - Log-in with Google.
-  - Send email verification after signing up.
+  - Send email verification after signing up successfully.
   - Send verification links for forgotten password requests.
 - **Performance Dashboard *(In-progress)*:** Analyze users' performance daily, weekly, and monthly.
 
