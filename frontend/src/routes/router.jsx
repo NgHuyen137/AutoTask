@@ -20,6 +20,12 @@ const ProtectedRoute = ({ children }) => {
 
 const router = createBrowserRouter([
   {
+    path: "/",
+    element: (
+      <Navigate to="/planner" replace />
+    )
+  },
+  {
     path: "/planner",
     element: (
       <ProtectedRoute>
