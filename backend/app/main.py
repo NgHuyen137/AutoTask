@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.db.mongodb import Database
 from app.config.security import security_settings
@@ -57,10 +58,15 @@ app.add_middleware(SessionMiddleware, secret_key=security_settings.FASTAPI_SECRE
 # Add CORSMiddleware to allow the frontend to access the API
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["http://localhost:5173", "https://autotask-api.onrender.com"],
+  allow_origins=["http://localhost:5173"],
   allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"],
+)
+
+app.add_middleware(
+  TrustedHostMiddleware,
+  ["https://autotask-api.onrender.com"]
 )
 
 app.add_exception_handler(
