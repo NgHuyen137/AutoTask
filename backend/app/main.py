@@ -57,7 +57,7 @@ app.add_middleware(SessionMiddleware, secret_key=security_settings.FASTAPI_SECRE
 # Add CORSMiddleware to allow the frontend to access the API
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["http://localhost:5173"],
+  allow_origins=["http://localhost:5173", "https://autotask-api.onrender.com"],
   allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"],
