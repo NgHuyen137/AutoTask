@@ -69,6 +69,7 @@ app.add_middleware(
   allowed_hosts=[
     "localhost",
     "127.0.0.1",
+    "*.onrender.com",
     "autotask-api.onrender.com"
   ]
 )
