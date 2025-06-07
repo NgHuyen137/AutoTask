@@ -130,7 +130,7 @@ async def login_google_callback(request: Request):
   # Fetch user info from Google
   try:
     user_info_endpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
-    headers = {"Authorization": f"Bearer {token["access_token"]}"}
+    headers = {"Authorization": f"Bearer {token['access_token']}"}
     google_response = requests.get(user_info_endpoint, headers=headers)
     user_info = google_response.json()
   except Exception as e:
