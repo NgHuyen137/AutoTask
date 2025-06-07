@@ -12,7 +12,7 @@ import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRigh
 const useDefaultDatetime = (task, updateTask) => {
   useEffect(() => {
     // Set default
-    if (task.smartScheduling && !task.startDate && !task.dueDate) {
+    if (task.smartScheduling && !task.startDate?.date() && !task.dueDate?.date()) {
       updateTask("startDate", dayjs())
       updateTask("dueDate", dayjs().add(30, "minutes"))
     }
@@ -21,13 +21,7 @@ const useDefaultDatetime = (task, updateTask) => {
       updateTask("startAt", dayjs())
       updateTask("endAt", dayjs().add(30, "minutes"))
     }
-  }, [
-    task.startDate,
-    task.dueDate,
-    task.startAt,
-    task.endAt,
-    task.smartScheduling
-  ])
+  }, [task.smartScheduling])
 }
 
 const useDifferentDay = (task, setIsDifferentDay) => {

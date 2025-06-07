@@ -19,11 +19,14 @@ const useDefaultDuration = (
 ) => {
   useEffect(() => {
     if (task.smartScheduling) {
-      if (!task.duration && label === "Duration")
+      if (!task.duration && label === "Duration") {
         updateTask("duration", {
           hours,
           minutes
         })
+        setHours(hours)
+        setMinutes(minutes)
+      }
       if (task.duration && label === "Duration") {
         updateTask("duration", {
           "hours": task.duration.hours,
@@ -32,16 +35,19 @@ const useDefaultDuration = (
         setHours(task.duration.hours)
         setMinutes(task.duration.minutes)
       }
-      if (task.split && label === "Min duration") {
-        updateTask("split", {
-          "hours": task.split.hours,
-          "minutes": task.split.minutes
-        })
-        setHours(task.split.hours)
-        setMinutes(task.split.minutes)
+      if (task.split && task.split.min_duration && label === "Min duration") {
+        updateTask("split", task.split)
+        setHours(task.split.min_duration.hours)
+        setMinutes(task.split.min_duration.minutes)
       }
     }
-  }, [task.smartScheduling])
+  }, [
+    task.smartScheduling, 
+    task.duration?.hours,
+    task.duration?.minutes,
+    task.split?.min_duration?.hours,
+    task.split?.min_duration?.minutes
+  ])
 }
 
 const useChangeDuration = (
@@ -76,7 +82,7 @@ const useSplit = (
 ) => {
   useEffect(() => {
     // Reset state of Min Duration
-    if (!split && label === "Min duration") {
+    if (!split && !task.split && label === "Min duration") {
       setHours(0)
       setMinutes(0)
       setStrDuration("")

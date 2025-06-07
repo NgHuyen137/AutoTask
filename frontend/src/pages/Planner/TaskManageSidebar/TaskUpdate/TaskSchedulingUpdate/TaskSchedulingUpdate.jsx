@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from "react"
+import { useState, useRef, useLayoutEffect, useEffect } from "react"
 import { useFetchAllSchedulingHours } from "~/hooks/useQuery"
 import SchedulingHourSelector from "~/components/TaskComponents/SchedulingHourSelector/SchedulingHourSelector"
 import DurationInput from "~/components/TaskComponents/DurationInput/DurationInput"
@@ -34,8 +34,16 @@ const useResponsiveSchedulingUpdate = (
   }, [])
 }
 
+const updateSplit = (task, split, setSplit) => {
+  useLayoutEffect(() => {
+    if (task.split && !split)
+      setSplit(true)
+    if (!task.split && split)
+      setSplit(false)
+  }, [task.split])
+}
+
 export default function TaskSchedulingUpdate({
-  taskSidebarRef,
   taskState,
   startDatetimeErrorState,
   endDatetimeErrorState,
@@ -52,6 +60,8 @@ export default function TaskSchedulingUpdate({
   const responsiveThreshold = 547
 
   const schedulingHours = useFetchAllSchedulingHours()
+
+  updateSplit(task, split, setSplit)
 
   useResponsiveSchedulingUpdate(
     taskSchedulingUpdateRef,
