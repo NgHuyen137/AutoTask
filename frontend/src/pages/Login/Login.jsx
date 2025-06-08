@@ -1,6 +1,7 @@
 import validator from "validator"
+import { API_ROOT } from "~/utils/constants"
 import { Link, Navigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useLogin } from "~/hooks/useMutation"
 import { useAuthContext } from "~/hooks/useContext"
 import { useMediaQuery } from "@mui/material"
@@ -104,7 +105,7 @@ export default function Login() {
   }
 
   const handleLoginWithGoogle = () => {
-    window.location.href = "http://localhost:8000/api/v1/auth/login/google"
+    window.location.href = `${API_ROOT}/api/v1/auth/login/google`
   }
 
   const isLessThan464 = useMediaQuery("(max-width: 464px)")
