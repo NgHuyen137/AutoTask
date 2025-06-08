@@ -36,8 +36,7 @@ async def get_all_tasks(
 	tasks = await get_tasks(start_of_week, end_of_week)
 	if tasks:
 		return tasks
-	raise TaskNotFoundError()
-
+	
 
 @task_router.post("/tasks")
 async def create_single_task(
