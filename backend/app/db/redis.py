@@ -9,7 +9,11 @@ from app.config.security import security_settings
 
 
 redis_client = Redis(
-  host=db_settings.REDIS_HOST, port=db_settings.REDIS_PORT, decode_responses=True
+  host=db_settings.REDIS_HOST, 
+  port=db_settings.REDIS_PORT, 
+  password=db_settings.REDIS_PASSWORD, 
+  decode_responses=True,
+  ssl=True
 )
 
 async def blacklist_tokens(access_token: str, refresh_token: str):
