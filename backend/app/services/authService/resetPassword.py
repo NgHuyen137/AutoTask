@@ -17,7 +17,7 @@ async def send_confirm_reset_password(
       salt="password-reset"
     )
     password_reset_link = (
-      f"http://{frontend_settings.DOMAIN}/forgot-password/{password_reset_token}"
+      f"{frontend_settings.DOMAIN}/forgot-password/{password_reset_token}"
     )
     await send_password_reset_link(background_tasks, user.email, password_reset_link)
     return True
