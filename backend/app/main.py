@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -73,6 +74,10 @@ app.add_middleware(
     "autotask-api.onrender.com"
   ]
 )
+
+@app.get("/")
+async def ping():
+  return JSONResponse(content={"message": "pong"})
 
 app.add_exception_handler(
   PasswordAndConfirmPasswordMismatchError,
