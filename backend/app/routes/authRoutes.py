@@ -276,7 +276,7 @@ async def send_verification_link(
       {"email": data.email},
       salt="email-verification"
     )
-    verification_link = f"http://{frontend_settings.DOMAIN}/verify/{verification_token}"
+    verification_link = f"{frontend_settings.DOMAIN}/verify/{verification_token}"
     await send_email_verification_link(background_tasks, data.email, verification_link)
     return JSONResponse(
       content={"message": "Email verification link sent successfully!"},

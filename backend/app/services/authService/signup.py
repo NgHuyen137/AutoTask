@@ -33,7 +33,7 @@ async def signup_user_account(background_tasks: BackgroundTasks, user: UserCreat
       {"email": new_user.email}, 
       salt="email-verification"
     )
-    verification_link = f"http://{frontend_settings.DOMAIN}/verify/{verification_token}"
+    verification_link = f"{frontend_settings.DOMAIN}/verify/{verification_token}"
     await send_email_verification_link(
       background_tasks, new_user.email, verification_link
     )
