@@ -33,12 +33,11 @@ async def create_scheduling_hour(scheduling_hour: SchedulingHourCreate):
 
 
 async def update_scheduling_hour(id: str, updated_data: SchedulingHourUpdate):
-	scheduling_hour = await get_scheduling_hour_by_id(id)
-	if not scheduling_hour:
+	updated_scheduling_hour = await get_scheduling_hour_by_id(id)
+	if not updated_scheduling_hour:
 		return None
 
-	updated_data_dict = updated_data.model_dump()
-	updated_data_dict["id"] = id
+	updated_data_dict = updated_data.model_dump(exclude_none=True)
 
 	# Convert Time objects to Datetime objects before storing in MongoDB
 	if updated_data_dict.get("days_of_week"):
@@ -47,7 +46,7 @@ async def update_scheduling_hour(id: str, updated_data: SchedulingHourUpdate):
 		)
 		updated_data_dict["days_of_week"] = converted_days_of_week
 
-	updated_scheduling_hour = SchedulingHour(**updated_data_dict)
+	updated_scheduling_hour = updated_scheduling_hour.model_copy(update=updated_data_dict)
 	await updated_scheduling_hour.save()
 
 	return updated_scheduling_hour

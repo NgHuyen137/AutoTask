@@ -37,13 +37,12 @@ def default_days_of_week():
 class SchedulingHourCreate(BaseModel):
 	name: str
 	description: Optional[str] = None
-	days_of_week: List[DayOfWeek]
+	days_of_week: List[DayOfWeek] = Field(default_factory=default_days_of_week)
 	created_at: datetime = Field(default_factory=get_utc_now)
 
 
 class SchedulingHourUpdate(BaseModel):
-	name: str
+	name: Optional[str] = None
 	description: Optional[str] = None
 	days_of_week: List[DayOfWeek] = Field(default_factory=default_days_of_week)
-	created_at: datetime
 	updated_at: datetime = Field(default_factory=get_utc_now)

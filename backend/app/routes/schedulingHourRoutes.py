@@ -49,7 +49,7 @@ async def create_single_scheduling_hour(
 		return new_scheduling_hour
 
 
-@scheduling_hour_router.put("/schedulingHours")
+@scheduling_hour_router.put("/schedulingHours/{id}")
 async def update_single_scheduling_hour(
 	id: str,
 	updated_data: SchedulingHourUpdate,
@@ -61,7 +61,7 @@ async def update_single_scheduling_hour(
 	raise SchedulingHourNotFoundError()
 
 
-@scheduling_hour_router.delete("/schedulingHours")
+@scheduling_hour_router.delete("/schedulingHours/{id}")
 async def delete_single_scheduling_hour(
 	id: str, current_user: Annotated[User, Depends(get_current_user)]
 ):

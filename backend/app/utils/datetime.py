@@ -15,17 +15,24 @@ def get_utc_now():
 	)
 
 
-def convert_time_to_datetime(time_object: time):
+def convert_time_to_datetime(time_object):
 	"""
 	Convert Time object to Datetime object
 	"""
-	datetime_object = datetime.combine(date.min, time_object, tzinfo=tz).astimezone(
-		tz=timezone.utc
-	)
-
-	if datetime_object.second or datetime_object.microsecond:
-		datetime_object = datetime_object.replace(second=0, microsecond=0)
-	return datetime_object
+	if isinstance(time_object, datetime):
+		return (
+			time_object
+        .replace(tzinfo=tz)  # Ensure the datetime is timezone-aware
+			  .astimezone(tz=timezone.utc)
+	      .replace(year=2000, month=1, day=1, second=0, microsecond=0)
+    )
+  
+	return (
+		datetime
+		  .combine(date(year=2000, month=1, day=1), time_object, tzinfo=tz)
+			.astimezone(tz=timezone.utc)
+			.replace(year=2000, month=1, day=1, second=0, microsecond=0)
+  )
 
 
 def convert_timeframe(time_frame):
