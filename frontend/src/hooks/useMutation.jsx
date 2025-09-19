@@ -3,6 +3,9 @@ import {
   createNewTaskAPI, 
   updateTaskAPI, 
   deleteTaskAPI,
+  createNewSchedulingHourAPI,
+  updateSchedulingHourAPI,
+  deleteSchedulingHourAPI,
   createNewAccountAPI,
   loginAPI,
   sendEmailVerificationAPI,
@@ -12,6 +15,84 @@ import {
   refreshAccessTokenAPI
 } from "~/apis"
 import { usePlannerContext } from "~/hooks/useContext"
+
+export const useCreateNewSchedulingHour = () => {
+  const queryClient = useQueryClient()
+
+  const {
+    mutate: createNewSchedulingHour,
+    isLoading,
+    isSuccess,
+    reset
+  } = useMutation({
+    mutationFn: (newSchedulingHourData) => createNewSchedulingHourAPI(newSchedulingHourData),
+    onSuccess: (data) => {
+      queryClient.setQueryData(["schedulingHours"], (oldData = []) => [...oldData, data])
+    }
+  })
+
+  return {
+    createNewSchedulingHour,
+    isLoading,
+    isSuccess,
+    reset
+  }
+}
+
+export const useUpdateSchedulingHour = () => {
+  const queryClient = useQueryClient()
+
+  const {
+    mutate: updateSingleSchedulingHour,
+    isLoading,
+    isSuccess,
+    reset
+  } = useMutation({
+    mutationFn: ({ id, updatedSchedulingHourData }) => updateSchedulingHourAPI(id, updatedSchedulingHourData),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["schedulingHours"], (oldData) => {
+        if (!oldData) return oldData
+        return oldData.map((schedulingHour) =>
+          schedulingHour._id === variables.id ? data : schedulingHour
+        )
+      })
+    }
+  })
+
+  return {
+    updateSingleSchedulingHour,
+    isLoading,
+    isSuccess,
+    reset
+  }
+}
+
+export const useDeleteSchedulingHour = () => {
+  const queryClient = useQueryClient()
+
+  const {
+    mutate: deleteSingleSchedulingHour,
+    isLoading,
+    isSuccess,
+    reset
+  } = useMutation({
+    mutationFn: ({ id }) => deleteSchedulingHourAPI(id),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["schedulingHours"], (oldData) => {
+        if (!oldData) return oldData
+        return oldData.filter((schedulingHour) => schedulingHour._id !== variables.id)
+      })
+    }
+  })
+
+  return {
+    deleteSingleSchedulingHour,
+    isLoading,
+    isSuccess,
+    reset
+  }
+}
+
 
 export const useCreateNewTask = () => {
   const queryClient = useQueryClient()
@@ -26,7 +107,10 @@ export const useCreateNewTask = () => {
     mutationFn: (newTaskData) => createNewTaskAPI(newTaskData),
     onSuccess: (data) => {
       const queryKey = ["tasks", { startOfWeek, endOfWeek }]
-      queryClient.setQueryData(queryKey, (oldData = []) => [...oldData, data])
+      queryClient.setQueryData(queryKey, (oldData = []) => {
+        if (!oldData) return [data]
+        return [...oldData, data]
+      })
     }
   })
 

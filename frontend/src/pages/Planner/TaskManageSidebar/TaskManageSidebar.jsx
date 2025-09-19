@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from "react"
 import { usePlannerContext, useLayoutContext } from "~/hooks/useContext"
 import { useUpdateTask, useDeleteTask } from "~/hooks/useMutation"
 import { useScreenSize } from "~/hooks/useEffect"
+import { useClickOutsideMoreOptionsPopper } from "~/hooks/useEffect"
+import EditButton from "~/components/ui/EditButton"
 import TaskDetails from "~/components/TaskDetails/TaskDetails"
 import TaskUpdate from "./TaskUpdate/TaskUpdate"
 import Box from "@mui/material/Box"
@@ -17,32 +19,11 @@ import List from "@mui/material/List"
 import ListItem from "@mui/material/ListItem"
 import ListItemText from "@mui/material/ListItemText"
 import ListItemIcon from "@mui/material/ListItemIcon"
-import MoreVertIcon from "@mui/icons-material/MoreVert"
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined"
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined"
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined"
 import CustomDeleteDialog from "~/components/ui/CustomDeleteDialog"
-
-const useClickOutsideMoreOptionsPopper = (
-  moreOptionsAnchor,
-  moreOptionsPaperRef,
-  setOpenMoreOptions,
-  openDeleteDialog
-) => {
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        !moreOptionsPaperRef.current?.contains(event.target) &&
-        !moreOptionsAnchor.current?.contains(event.target) &&
-        !openDeleteDialog
-      )
-        setOpenMoreOptions(false)
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [openDeleteDialog])
-}
+import MoreOptionsButton from "~/components/ui/MoreOptionsButton"
 
 const useResponsiveTaskSidebarWidth = (
   screenWidth,
@@ -174,6 +155,19 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
     }, 1000)
   }
 
+  const handleOpenEditTask = () => {
+    setOpenUpdate(true)
+    localStorage.setItem("openUpdate", true)
+  }
+
+  const handleOpenMoreOptions = (event) => {
+    moreOptionsAnchor.current = event.currentTarget
+    setOpenMoreOptions((prev) => {
+      if (prev === false) return true
+      return false
+    })
+  }
+
   const handleResizeTaskSidebar = (e) => {
     e.preventDefault() // Prevent text selection and other default behaviors
     document.body.style.cursor = "col-resize"
@@ -263,55 +257,9 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
               justifyContent: "flex-end"
             }}
           >
-            <Tooltip arrow title="Edit">
-              <IconButton
-                onClick={() => {
-                  setOpenUpdate(true)
-                  localStorage.setItem("openUpdate", true)
-                }}
-                sx={{ padding: "4px" }}
-              >
-                <SvgIcon sx={{ fontSize: "1rem", color: "#8A8A8A" }}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    width="0.9em"
-                    height="0.9em"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
-                    ></path>
-                  </svg>
-                </SvgIcon>
-              </IconButton>
-            </Tooltip>
+            <EditButton onEdit={handleOpenEditTask} />
 
-            <Tooltip
-              arrow
-              title="More options"
-              open={!openMoreOptions && hoverMoreOptionsButton}
-            >
-              <IconButton
-                onClick={(event) => {
-                  moreOptionsAnchor.current = event.currentTarget
-                  setOpenMoreOptions((prev) => {
-                    if (prev === false) return true
-                    return false
-                  })
-                }}
-                onMouseEnter={() => setHoverMoreOptionsButton(true)}
-                onMouseLeave={() => setHoverMoreOptionsButton(false)}
-                sx={{ padding: "4px" }}
-              >
-                <MoreVertIcon sx={{ fontSize: "1rem", color: "#8A8A8A" }} />
-              </IconButton>
-            </Tooltip>
-
+            <MoreOptionsButton openMoreOptions={openMoreOptions} onOpenMoreOptions={handleOpenMoreOptions} />
             <Popper
               disablePortal
               transition
@@ -452,10 +400,10 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
                   openDeleteDialog,
                   setOpenDeleteDialog
                 }}
-                taskName={targetTask.name}
-                isDeletingTask={isDeletingTask}
-                isDeletedTask={isDeletedTask}
-                handleDeleteTask={handleDeleteTask}
+                name={targetTask.name}
+                isDeleting={isDeletingTask}
+                isDeleted={isDeletedTask}
+                onDelete={handleDeleteTask}
               />
             )}
 

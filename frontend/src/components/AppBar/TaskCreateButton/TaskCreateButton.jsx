@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTaskState } from "~/hooks/useState"
 import { useFetchAllSchedulingHours } from "~/hooks/useQuery"
-import { usePlannerContext } from "~/hooks/useContext"
+import { useLayoutContext } from "~/hooks/useContext"
 import { useCreateNewTask } from "~/hooks/useMutation"
 import { useMediaQuery } from "@mui/material"
 import {
@@ -36,7 +36,7 @@ export default function TaskCreateButton({ buttonRef, taskCreateFormRef }) {
     setShowTaskCreateForm,
     enterTaskCreateForm,
     setEnterTaskCreateForm
-  } = usePlannerContext()
+  } = useLayoutContext()
 
   const { task, updateTask } = useTaskState()
   const [split, setSplit] = useState(false)

@@ -1,3 +1,4 @@
+import dayjs from "dayjs"
 import { useState } from "react"
 
 // Custom hook for managing Task state
@@ -23,4 +24,47 @@ export const useTaskState = () => {
   }
 
   return { task, updateTask }
+}
+
+
+export const useSchedulingHourState = () => {
+  const [schedulingHour, setSchedulingHour] = useState({
+    name: "",
+    description: "",
+    daysOfWeek: Array.from({ length: 5 }, (_, index) => ({
+      dayIndex: index,
+      timeFrames: [
+        {
+          startTime: dayjs().hour(9).minute(0).format("h:mm a"),
+          endTime: dayjs().hour(17).minute(0).format("h:mm a")
+        }
+      ]
+    }))
+  })
+
+  const resetSchedulingHourState = () => {
+    setSchedulingHour({
+      name: "",
+      description: "",
+      daysOfWeek: Array.from({ length: 5 }, (_, index) => ({
+        dayIndex: index,
+        timeFrames: [
+          {
+            startTime: dayjs().hour(9).minute(0).format("h:mm a"),
+            endTime: dayjs().hour(17).minute(0).format("h:mm a")
+          }
+        ]
+      }))
+    })
+  } 
+
+  const updateSchedulingHour = (field, value) => {
+    setSchedulingHour((prev) => ({ ...prev, [field]: value }))
+  }
+
+  return { 
+    schedulingHour,
+    resetSchedulingHourState, 
+    updateSchedulingHour 
+  }
 }

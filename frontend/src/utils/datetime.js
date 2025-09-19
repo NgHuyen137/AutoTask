@@ -1,6 +1,5 @@
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
-
 dayjs.extend(customParseFormat)
 
 export const scrollToTarget = (calendarApi, targetDate) => {
@@ -60,6 +59,11 @@ export const parseTime = (datetime) => {
   })
   const dayjsTime = dayjs(strTime, "HH:mm A")
   return dayjsTime
+}
+
+export const parseStringToTime = (timeString) => {
+  const time = dayjs(timeString, "h:mm a", true)
+  return time
 }
 
 export const combineDateAndTime = (originDatetime, time) => {

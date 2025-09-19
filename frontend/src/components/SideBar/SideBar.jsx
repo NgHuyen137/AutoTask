@@ -42,13 +42,19 @@ const useSidebarMounted = () => {
   }, [screenWidth])
 }
 
-export default function SideBar({ menuButtonRef }) {
+export default function SideBar() {
   const isMobile = useMediaQuery("(max-width: 499px)")
   const sidebarScreenSizeThreshold = 800 // Move Sidebar to the top right when screen size changes
   const screenWidth = useScreenSize()
 
   const { showTaskCreatePopup } = usePlannerContext()
-  const { user, setUser, setAccessToken } = useAuthContext()
+  const { 
+    user, 
+    setUser, 
+    setAccessToken,
+    setIsLoggingOut,
+    setLogoutSuccess
+  } = useAuthContext()
 
   const {
     openSidebar,
@@ -56,9 +62,7 @@ export default function SideBar({ menuButtonRef }) {
     lockSidebar,
     setLockSidebar,
     hoverPin,
-    setHoverPin,
-    setIsLoggingOut,
-    setLogoutSuccess
+    setHoverPin
   } = useLayoutContext()
 
   const sidebarPaperRef = useRef(null)

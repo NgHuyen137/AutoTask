@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 export const useDelayRedirect = (isSuccess, setShouldRedirect) => {
   const [hasStarted, setHasStarted] = useState(false)
@@ -60,4 +60,38 @@ export const useCalendarView = (
     observer.observe(calendarContainerRef.current)
     return () => observer.disconnect()
   }, [])
+}
+
+export const useEffectAfterMount = (effect, dependencies) => {
+  const isMounted = useRef(false)
+
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true
+      return
+    }
+
+    return effect()
+  }, dependencies)
+}
+
+export const useClickOutsideMoreOptionsPopper = (
+  moreOptionsAnchor,
+  moreOptionsPaperRef,
+  setOpenMoreOptions,
+  openDeleteDialog
+) => {
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        !moreOptionsPaperRef.current?.contains(event.target) &&
+        !moreOptionsAnchor.current?.contains(event.target) &&
+        !openDeleteDialog
+      )
+        setOpenMoreOptions(false)
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [openDeleteDialog])
 }

@@ -1,4 +1,5 @@
-import { useState, useLayoutEffect, createContext } from "react"
+import { useFetchUser } from "~/hooks/useQuery"
+import { useState, useEffect, useLayoutEffect, createContext } from "react"
 import { api } from "~/apis"
 
 export const AuthContext = createContext({})
@@ -7,6 +8,8 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null)
   const [user, setUser] = useState(null)
   const [refreshTokenExpired, setRefreshTokenExpired] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [logoutSuccess, setLogoutSuccess] = useState(false)
 
   useLayoutEffect(() => {
     // Request interceptor: attach access token to all requests
@@ -65,15 +68,13 @@ export const AuthProvider = ({ children }) => {
             const res = await api.post("/auth/refresh")
             const newAccessToken = res["data"]["access_token"]
             setAccessToken(newAccessToken)
-
             processQueue(null, newAccessToken)
-
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
             return api(originalRequest)
           } catch(err) {        
             processQueue(err, null)
-            setRefreshTokenExpired(true)
             setAccessToken(null)
+            setRefreshTokenExpired(true)
             return Promise.reject(err)
           } finally {
             isRefreshing = false
@@ -87,12 +88,22 @@ export const AuthProvider = ({ children }) => {
     return () => api.interceptors.response.eject(responseInterceptor)
   }, [accessToken])
 
+  const { currentUser, isSuccess } = useFetchUser()
+  useEffect(() => {
+    if (isSuccess) {
+      setUser(currentUser)
+      setRefreshTokenExpired(false)
+    }
+  }, [isSuccess])
+
   return (
     <AuthContext.Provider 
       value={{ 
+        user, setUser,
         accessToken, setAccessToken,
         refreshTokenExpired, setRefreshTokenExpired,
-        user, setUser
+        logoutSuccess, setLogoutSuccess,
+        isLoggingOut, setIsLoggingOut
       }}
     >
       {children}

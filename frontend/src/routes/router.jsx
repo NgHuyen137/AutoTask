@@ -1,10 +1,12 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import { useAuthContext } from "~/hooks/useContext"
 import { PlannerProvider } from "~/context/PlannerContext"
+import { SchedulingHourProvider } from "~/context/SchedulingHourContext"
 
 import Login from "~/pages/Login/Login"
 import Signup from "~/pages/Signup/Signup"
 import Planner from "~/pages/Planner/Planner"
+import SchedulingHours from "~/pages/SchedulingHours/SchedulingHours"
 import VerifyEmailReminder from "~/pages/Verification/VerifyEmailReminder/VerifyEmailReminder"
 import VerifyEmailStatus from "~/pages/Verification/VerifyEmailStatus/VerifyEmailStatus"
 import PasswordResetConfirm from "~/pages/PasswordReset/PasswordResetConfirm/PasswordResetConfirm"
@@ -34,6 +36,16 @@ const router = createBrowserRouter([
         </PlannerProvider>
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/scheduling-hours",
+    element: (
+      <ProtectedRoute>
+        <SchedulingHourProvider>
+          <SchedulingHours />
+        </SchedulingHourProvider>
+      </ProtectedRoute>
+    )
   },
   {
     path: "/verify",

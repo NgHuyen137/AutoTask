@@ -16,10 +16,6 @@ export const PlannerProvider = ({ children }) => {
   const [startOfWeek, setStartOfWeek] = useState("")
   const [endOfWeek, setEndOfWeek] = useState("")
 
-  // For showing Task Create Form when clicking on the New Task button
-  const [enterTaskCreateForm, setEnterTaskCreateForm] = useState(false)
-  const [showTaskCreateForm, setShowTaskCreateForm] = useState(false)
-
   // For managing Task Sidebar
   const [openTaskSidebar, setOpenTaskSidebar] = useState(() => {
     return JSON.parse(localStorage.getItem("openTaskSidebar")) ?? false
@@ -65,11 +61,6 @@ export const PlannerProvider = ({ children }) => {
         setStartOfWeek,
         endOfWeek,
         setEndOfWeek,
-
-        showTaskCreateForm,
-        setShowTaskCreateForm,
-        enterTaskCreateForm,
-        setEnterTaskCreateForm,
 
         openTaskSidebar,
         setOpenTaskSidebar,

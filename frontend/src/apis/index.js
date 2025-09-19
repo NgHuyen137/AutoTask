@@ -13,6 +13,22 @@ export const fetchAllSchedulingHoursAPI = async () => {
   return response.data
 }
 
+export const createNewSchedulingHourAPI = async (newSchedulingHourData) => {
+  const response = await api.post("/schedulingHours", newSchedulingHourData)
+  return response.data
+}
+
+export const updateSchedulingHourAPI = async (id, updatedSchedulingHourData) => {
+  const response = await api.put(`/schedulingHours/${id}`, updatedSchedulingHourData)
+  return response.data
+}
+
+export const deleteSchedulingHourAPI = async (id) => {
+  const response = await api.delete(`/schedulingHours/${id}`)
+  return response.data
+}
+
+
 // For Task
 export const fetchAllTasksAPI = async (start_of_week, end_of_week) => {
   const response = await api.get("/tasks", {
