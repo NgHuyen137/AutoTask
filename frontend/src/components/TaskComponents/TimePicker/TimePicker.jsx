@@ -7,6 +7,7 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker"
 
 export default function CustomTimePicker({
   label,
+  textFieldVariant = "filled",
   calendarRef,
   timeErrorState
 }) {
@@ -114,7 +115,7 @@ export default function CustomTimePicker({
             }
           },
           textField: {
-            variant: "filled",
+            variant: textFieldVariant,
             error: timeError,
             helperText: timeError ? errorMessage() : ""
           },

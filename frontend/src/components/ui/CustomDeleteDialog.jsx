@@ -7,7 +7,6 @@ import DialogActions from "@mui/material/DialogActions"
 import Button from "@mui/material/Button"
 import CustomSubmitButton from "./CustomSubmitButton"
 import Typography from "@mui/material/Typography"
-import Fade from "@mui/material/Fade"
 import SvgIcon from "@mui/material/SvgIcon"
 
 const DeleteIcon = () => (
@@ -41,10 +40,10 @@ const DeleteIcon = () => (
 
 export default function CustomDeleteDialog({
   openDeleteDialogState,
-  taskName,
-  isDeletingTask,
-  isDeletedTask,
-  handleDeleteTask
+  name,
+  isDeleting,
+  isDeleted,
+  onDelete
 }) {
   const { openDeleteDialog, setOpenDeleteDialog } = openDeleteDialogState
 
@@ -95,7 +94,7 @@ export default function CustomDeleteDialog({
           color="#8A8A8A"
           sx={{ textAlign: "center" }}
         >
-          Are you sure you want to delete {taskName}?
+          Are you sure you want to delete {name}?
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: "center", gap: 1 }}>
@@ -121,9 +120,9 @@ export default function CustomDeleteDialog({
         </Button>
         <CustomSubmitButton
           buttonName="Confirm"
-          handleClick={handleDeleteTask}
-          isLoading={isDeletingTask}
-          isSuccess={isDeletedTask}
+          handleClick={onDelete}
+          isLoading={isDeleting}
+          isSuccess={isDeleted}
           props={{
             width: "120px",
             height: "100%",

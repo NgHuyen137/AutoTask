@@ -1,5 +1,5 @@
 import { useRef } from "react"
-import { useLayoutContext, usePlannerContext } from "~/hooks/useContext"
+import { useLayoutContext } from "~/hooks/useContext"
 import { useMediaQuery } from "@mui/material"
 import { useScreenSize } from "~/hooks/useEffect"
 
@@ -15,17 +15,15 @@ import Typography from "@mui/material/Typography"
 import AddRoundedIcon from "@mui/icons-material/AddRounded"
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
 
-export default function AppBar({ menuButtonRef, taskCreateFormRef }) {
+export default function AppBar({ appBarName, menuButtonRef, taskCreateFormRef }) {
   const isMobile = useMediaQuery("(max-width: 499px)")
 
   const screenWidth = useScreenSize()
   const sidebarScreenSizeThreshold = 800
 
   const buttonRef = useRef(null)
-  const { setEnterTaskCreateForm, showTaskCreateForm, setShowTaskCreateForm } =
-    usePlannerContext()
-
-  const { setOpenSidebar } = useLayoutContext()
+  const { setOpenSidebar, setEnterTaskCreateForm, showTaskCreateForm, setShowTaskCreateForm } =
+    useLayoutContext()
 
   return (
     <Box>
@@ -52,7 +50,7 @@ export default function AppBar({ menuButtonRef, taskCreateFormRef }) {
             color="text.primary"
             fontWeight={500}
           >
-            Planner
+            {appBarName}
           </Typography>
           <Box
             sx={{

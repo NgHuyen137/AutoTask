@@ -14,9 +14,9 @@ export const LayoutProvider = ({ children }) => {
     return JSON.parse(localStorage.getItem("hoverPin")) ?? false
   })
 
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const [logoutSuccess, setLogoutSuccess] = useState(false)
-  const [isLoggedOut, setIsLoggedOut] = useState(false)
+  // For showing Task Create Form when clicking on the New Task button
+  const [enterTaskCreateForm, setEnterTaskCreateForm] = useState(false)
+  const [showTaskCreateForm, setShowTaskCreateForm] = useState(false)
 
   return (
     <LayoutContext.Provider
@@ -25,9 +25,8 @@ export const LayoutProvider = ({ children }) => {
         openSidebar, setOpenSidebar,
         lockSidebar, setLockSidebar,
         hoverPin, setHoverPin,
-        logoutSuccess, setLogoutSuccess,
-        isLoggingOut, setIsLoggingOut,
-        isLoggedOut, setIsLoggedOut
+        enterTaskCreateForm, setEnterTaskCreateForm,
+        showTaskCreateForm, setShowTaskCreateForm
       }}
     >
       {children}

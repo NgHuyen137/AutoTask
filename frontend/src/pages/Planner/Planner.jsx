@@ -1,7 +1,6 @@
-import { useRef, useEffect } from "react"
+import { useRef } from "react"
 import { Navigate } from "react-router-dom"
-import { useLayoutContext, usePlannerContext, useAuthContext } from "~/hooks/useContext"
-import { useFetchUser } from "~/hooks/useQuery"
+import { usePlannerContext, useAuthContext } from "~/hooks/useContext"
 
 import Spinner from "~/components/ui/Spinner"
 
@@ -15,8 +14,7 @@ import Box from "@mui/material/Box"
 import Container from "@mui/material/Container"
 
 export default function Planner() {
-  const { setUser } = useAuthContext()
-  const { isLoggingOut, logoutSuccess, isLoggedOut, setIsLoggedOut } = useLayoutContext()
+  const { isLoggingOut, logoutSuccess } = useAuthContext()
   const { openTaskSidebar, taskSidebarWidth } = usePlannerContext()
   const menuButtonRef = useRef(null)
   const taskSidebarRef = useRef(null)
@@ -24,15 +22,6 @@ export default function Planner() {
   const anchorEl = useRef(null)
   const taskCreateFormRef = useRef(null)
   const calendarRef = useRef(null)
-
-  const { currentUser, isSuccess } = useFetchUser()
-  useEffect(() => {
-    if (isSuccess) {
-      setUser(currentUser)
-      setIsLoggedOut(false)
-    }
-  }, [isSuccess])
-
 
   if (isLoggingOut)
     return (
@@ -48,9 +37,10 @@ export default function Planner() {
       maxWidth={false}
       sx={{ height: "100vh", display: "flex", overflow: "hidden" }}
     >
-      <SideBar menuButtonRef={menuButtonRef} />
+      <SideBar />
       <MainContainer>
         <AppBar
+          appBarName="Planner"
           menuButtonRef={menuButtonRef}
           taskCreateFormRef={taskCreateFormRef}
         />

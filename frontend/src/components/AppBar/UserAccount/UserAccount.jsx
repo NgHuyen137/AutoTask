@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { useAuthContext, useLayoutContext } from "~/hooks/useContext"
+import { useAuthContext } from "~/hooks/useContext"
 import { useLogout } from "~/hooks/useMutation"
 
 import Box from "@mui/material/Box"
@@ -44,13 +44,11 @@ const clickOutside = (accountAnchorEl, setOpenAccountMenu) => {
 export default function UserAccount() {
   const [openAccountMenu, setOpenAccountMenu] = useState(false)
   const [accountAnchorEl, setAccountAnchorEl] = useState(null)
-  const { user, setUser, setAccessToken } = useAuthContext()
-  const { setIsLoggingOut, setLogoutSuccess } = useLayoutContext()
+  const { user, setUser, setAccessToken, setIsLoggingOut, setLogoutSuccess } = useAuthContext()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [picture, setPicture] = useState("")
   const accountMenuRef = useRef(null)
-
 
   clickOutside(accountAnchorEl, setOpenAccountMenu)
   getUserDetails(user, setName, setEmail, setPicture)
