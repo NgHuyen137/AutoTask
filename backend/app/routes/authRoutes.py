@@ -1,16 +1,17 @@
+import logging
 from typing import Annotated, Optional
 from datetime import timedelta
 
 import uuid
 import requests
 from fastapi import (
-  APIRouter, 
-  BackgroundTasks, 
-  Cookie, 
-  Depends, 
-  Request, 
-  Response, 
-  status
+  APIRouter,
+  BackgroundTasks,
+  Cookie,
+  Depends,
+  Request,
+  Response,
+  status,
 )
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -25,7 +26,7 @@ from app.exceptions.authExceptions import (
   EmailVerificationError,
   RefreshTokenExpiredError,
   UserAlreadyExistsError,
-  UserNotFoundError
+  UserNotFoundError,
 )
 from app.dependencies.auth import get_token_from_request
 from app.schemas.passwordResetSchema import PasswordResetSchema
@@ -55,7 +56,7 @@ oauth.register(
   authorize_state=security_settings.SECRET_KEY,
   redirect_uri=security_settings.REDIRECT_URL,
   jwks_uri="https://www.googleapis.com/oauth2/v3/certs",
-  client_kwargs={"scope": "openid profile email"}
+  client_kwargs={"scope": "openid profile email"},
 )
 
 
@@ -74,19 +75,14 @@ async def signup(
 
 
 @auth_router.post("/login/password")
-async def login_password(
-  form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
-):
+async def login_password(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
   """
   Login a user account and return access token and refresh token.
   """
   res = await login_user_account(form_data)
   if res["access_token"] and res["refresh_token"]:
     json_response = JSONResponse(
-      content={
-        "access_token": res["access_token"]
-      },
-      status_code=status.HTTP_200_OK
+      content={"access_token": res["access_token"]}, status_code=status.HTTP_200_OK
     )
 
     # Store refresh token in httpOnly cookie
@@ -99,23 +95,21 @@ async def login_password(
       max_age=security_settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
     )
     return json_response
-  
+
   if res["user"] and not res["is_verified"]:
     raise EmailVerificationError()
 
   if not res["user"]:
     raise UnauthorizedError()
-  
+
 
 @auth_router.get("/login/google")
 async def login_google(request: Request):
   """
   Redirect to Google OAuth2 login page.
-  """ 
+  """
   return await oauth.google.authorize_redirect(
-    request, 
-    security_settings.REDIRECT_URL, 
-    prompt="consent"
+    request, security_settings.REDIRECT_URL, prompt="consent"
   )
 
 
@@ -148,10 +142,7 @@ async def login_google_callback(request: Request):
   if not existing_user:
     # Create new account
     new_user = await create_user_with_google(
-      name=user_name,
-      email=user_email,
-      google_id=google_id,
-      picture=user_pic
+      name=user_name, email=user_email, google_id=google_id, picture=user_pic
     )
 
   elif "google" not in existing_user.auth_providers:
@@ -167,10 +158,12 @@ async def login_google_callback(request: Request):
     {"sub": str(user_id), "email": user_email, "jti": str(uuid.uuid4())}
   )
 
+  logging.info("Access token:", access_token)
+
   # Create refresh token
   refresh_token = create_access_token(
     {"sub": str(user_id), "email": user_email, "jti": str(uuid.uuid4())},
-    expires_delta=timedelta(days=security_settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expires_delta=timedelta(days=security_settings.REFRESH_TOKEN_EXPIRE_DAYS),
   )
 
   response = RedirectResponse(url=security_settings.FRONTEND_URL)
@@ -181,7 +174,7 @@ async def login_google_callback(request: Request):
     httponly=True,
     secure=True,
     samesite="none",
-    max_age=security_settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    max_age=security_settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
   )
 
   response.set_cookie(
@@ -190,7 +183,7 @@ async def login_google_callback(request: Request):
     httponly=True,
     secure=True,
     samesite="none",
-    max_age=security_settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+    max_age=security_settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
   )
 
   return response
@@ -210,10 +203,10 @@ async def refresh(refresh_token: Optional[str] = Cookie(None, alias="refresh_tok
           "user": {
             "email": result["user"].email,
             "name": result["user"].name,
-            "is_verified": result["user"].is_verified
-          }
+            "is_verified": result["user"].is_verified,
+          },
         },
-        status_code=status.HTTP_200_OK
+        status_code=status.HTTP_200_OK,
       )
   raise RefreshTokenExpiredError()
 
@@ -222,7 +215,7 @@ async def refresh(refresh_token: Optional[str] = Cookie(None, alias="refresh_tok
 async def logout(
   response: Response,
   access_token: str = Depends(get_token_from_request),
-  refresh_token: Optional[str] = Cookie(None, alias="refresh_token")
+  refresh_token: Optional[str] = Cookie(None, alias="refresh_token"),
 ):
   """
   Logout the user by invalidating the access token and refresh token.
@@ -231,8 +224,7 @@ async def logout(
   response.delete_cookie(key="access_token")
   response.delete_cookie(key="refresh_token")
   return JSONResponse(
-    content={"message": "Logout successfully!"},
-    status_code=status.HTTP_200_OK
+    content={"message": "Logout successfully!"}, status_code=status.HTTP_200_OK
   )
 
 
@@ -254,7 +246,7 @@ async def verify_email(token: str):
       content={
         "email": email,
         "status_code": 200,
-        "message": "Email verified successfully!"
+        "message": "Email verified successfully!",
       },
       status_code=status.HTTP_200_OK,
     )
@@ -264,31 +256,28 @@ async def verify_email(token: str):
 
 @auth_router.post("/send-verification-email")
 async def send_verification_link(
-  background_tasks: BackgroundTasks, 
-  data: EmailVerificationSchema
+  background_tasks: BackgroundTasks, data: EmailVerificationSchema
 ):
   """
-    Send a verification link to the specified email
+  Send a verification link to the specified email
   """
   user = await get_user_by_email(data.email)
   if user:
     verification_token = create_url_safe_token(
-      {"email": data.email},
-      salt="email-verification"
+      {"email": data.email}, salt="email-verification"
     )
     verification_link = f"{frontend_settings.DOMAIN}/verify/{verification_token}"
     await send_email_verification_link(background_tasks, data.email, verification_link)
     return JSONResponse(
       content={"message": "Email verification link sent successfully!"},
-      status_code=status.HTTP_200_OK
+      status_code=status.HTTP_200_OK,
     )
   raise UserNotFoundError()
 
 
 @auth_router.post("/confirm-password-reset")
 async def password_reset_confirm(
-  background_tasks: BackgroundTasks, 
-  data: EmailVerificationSchema
+  background_tasks: BackgroundTasks, data: EmailVerificationSchema
 ):
   """
   Send a password reset email to the user.
@@ -298,7 +287,7 @@ async def password_reset_confirm(
     raise UserNotFoundError()
   return JSONResponse(
     content={"message": "Password reset email sent successfully!"},
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
   )
 
 
@@ -319,7 +308,7 @@ async def verify_password_reset_token(token: str):
       content={
         "email": email,
         "status_code": 200,
-        "message": "Password reset successfully!"
+        "message": "Password reset successfully!",
       },
       status_code=status.HTTP_200_OK,
     )
@@ -345,6 +334,5 @@ async def reset_password(password_reset_data: PasswordResetSchema):
   await user.save()
 
   return JSONResponse(
-    content={"message": "Password reset successfully!"},
-    status_code=status.HTTP_200_OK,
+    content={"message": "Password reset successfully!"}, status_code=status.HTTP_200_OK
   )
