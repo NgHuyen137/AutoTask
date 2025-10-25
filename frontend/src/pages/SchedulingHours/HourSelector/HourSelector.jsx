@@ -1,7 +1,10 @@
 import _ from "lodash"
 
 import { useState, useRef } from "react"
-import { useDeleteSchedulingHour, useUpdateSchedulingHour } from "~/hooks/useMutation"
+import {
+  useDeleteSchedulingHour,
+  useUpdateSchedulingHour
+} from "~/hooks/useMutation"
 import { useSchedulingHourContext } from "~/hooks/useContext"
 import useDebounce from "~/hooks/useDebounce"
 import { useClickOutsideMoreOptionsPopper } from "~/hooks/useEffect"
@@ -34,27 +37,21 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined"
 export default function HourSelector({ schedulingHour }) {
   const [expand, setExpand] = useState(false)
   const [hasTimeError, setHasTimeError] = useState(false)
-  const [openUpdateSchedulingHour, setOpenUpdateSchedulingHour] = useState(false)
+  const [openUpdateSchedulingHour, setOpenUpdateSchedulingHour] =
+    useState(false)
 
-  const moreOptionsAnchor = useRef(null)
   const moreOptionsPaperRef = useRef(null)
-  const [openMoreOptions, setOpenMoreOptions] = useState(false)
+  const [moreOptionsAnchor, setMoreOptionsAnchor] = useState(null)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
 
   const currSchedulingHour = useRef(schedulingHour)
   const debouncedSchedulingHour = useDebounce(schedulingHour, 3000)
-  
-  const {
-    setOpenUpdateSuccessBar,
-    setEnterUpdateSuccessBar,
-    addDay,
-    removeDay
-  } = useSchedulingHourContext()
 
-  const {
-    updateSingleSchedulingHour,
-    reset: resetUpdateSchedulingHour
-  } = useUpdateSchedulingHour()
+  const { setOpenUpdateSuccessBar, addDay, removeDay } =
+    useSchedulingHourContext()
+
+  const { updateSingleSchedulingHour, reset: resetUpdateSchedulingHour } =
+    useUpdateSchedulingHour()
 
   const {
     deleteSingleSchedulingHour,
@@ -66,7 +63,7 @@ export default function HourSelector({ schedulingHour }) {
   useClickOutsideMoreOptionsPopper(
     moreOptionsAnchor,
     moreOptionsPaperRef,
-    setOpenMoreOptions,
+    setMoreOptionsAnchor,
     openDeleteDialog
   )
 
@@ -85,8 +82,18 @@ export default function HourSelector({ schedulingHour }) {
 
   useEffectAfterMount(() => {
     const hasChanges = !_.isEqual(
-      currSchedulingHour.current.daysOfWeek.map(d => d.timeFrames.map(tf => ({ startTime: tf.startTime, endTime: tf.endTime }))),
-      debouncedSchedulingHour.daysOfWeek.map(d => d.timeFrames.map(tf => ({ startTime: tf.startTime, endTime: tf.endTime })))
+      currSchedulingHour.current.daysOfWeek.map((d) =>
+        d.timeFrames.map((tf) => ({
+          startTime: tf.startTime,
+          endTime: tf.endTime
+        }))
+      ),
+      debouncedSchedulingHour.daysOfWeek.map((d) =>
+        d.timeFrames.map((tf) => ({
+          startTime: tf.startTime,
+          endTime: tf.endTime
+        }))
+      )
     )
 
     if (!hasTimeError && hasChanges) {
@@ -95,8 +102,8 @@ export default function HourSelector({ schedulingHour }) {
       }
 
       updateSingleSchedulingHour(
-        { 
-          id: debouncedSchedulingHour.id, 
+        {
+          id: debouncedSchedulingHour.id,
           updatedSchedulingHourData
         },
         {
@@ -122,15 +129,15 @@ export default function HourSelector({ schedulingHour }) {
 
   const handleOpenUpdateForm = () => {
     setOpenUpdateSchedulingHour(true)
-    setOpenMoreOptions(false)
+    setMoreOptionsAnchor(null)
   }
 
   const handleOpenMoreOptions = (event) => {
-    moreOptionsAnchor.current = event.currentTarget
-    setOpenMoreOptions((prev) => {
-      if (prev === false) return true
-      return false
-    })
+    setMoreOptionsAnchor(event.currentTarget)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false)
   }
 
   return (
@@ -138,7 +145,7 @@ export default function HourSelector({ schedulingHour }) {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "auto 32px",
+          gridTemplateColumns: "minmax(0, 1fr) repeat(3, 24px)",
           alignItems: "center",
           transition: "margin-bottom 350ms ease-in-out",
           my: 2
@@ -170,44 +177,39 @@ export default function HourSelector({ schedulingHour }) {
             {schedulingHour.description}
           </Typography>
         </Box>
-        
+
         <Box
           sx={{
             display: "grid",
-            columnGap: 0.5,
-            gridTemplateColumns: "repeat(3, auto)"
+            columnGap: 0,
+            gridTemplateColumns: "repeat(3, 24px)"
           }}
         >
-          {
-            !["Study", "Work"].includes(schedulingHour.name) &&
-            (
-              <EditButton 
-                onEdit={handleOpenUpdateForm}
-              />
-            )
-          }
-          {
-            openUpdateSchedulingHour &&
-            (
-              <EditForm 
-                openUpdateSchedulingHourState={{ openUpdateSchedulingHour, setOpenUpdateSchedulingHour }}
-                schedulingHour={schedulingHour}
-              />
-            )
-          }
+          {!["Study", "Work"].includes(schedulingHour.name) && (
+            <EditButton onEdit={handleOpenUpdateForm} />
+          )}
+          {openUpdateSchedulingHour && (
+            <EditForm
+              openUpdateSchedulingHourState={{
+                openUpdateSchedulingHour,
+                setOpenUpdateSchedulingHour
+              }}
+              schedulingHour={schedulingHour}
+            />
+          )}
 
-          {
-            !["Study", "Work"].includes(schedulingHour.name) &&
-            (
-              <MoreOptionsButton openMoreOptions={openMoreOptions} onOpenMoreOptions={handleOpenMoreOptions} />
-            )
-          }
+          {!["Study", "Work"].includes(schedulingHour.name) && (
+            <MoreOptionsButton
+              openMoreOptions={Boolean(moreOptionsAnchor)}
+              onOpenMoreOptions={handleOpenMoreOptions}
+            />
+          )}
           <Popper
             disablePortal
             transition
             placement="left-end"
-            open={openMoreOptions}
-            anchorEl={moreOptionsAnchor.current}
+            open={Boolean(moreOptionsAnchor)}
+            anchorEl={moreOptionsAnchor}
             sx={{ zIndex: 1600 }}
           >
             {({ TransitionProps }) => (
@@ -275,7 +277,7 @@ export default function HourSelector({ schedulingHour }) {
                     <Button
                       onClick={() => {
                         setOpenDeleteDialog(true)
-                        setOpenMoreOptions(false)
+                        setMoreOptionsAnchor(null)
                       }}
                       sx={{
                         textTransform: "none",
@@ -309,10 +311,8 @@ export default function HourSelector({ schedulingHour }) {
           </Popper>
           {openDeleteDialog && (
             <CustomDeleteDialog
-              openDeleteDialogState={{
-                openDeleteDialog,
-                setOpenDeleteDialog
-              }}
+              openDeleteDialog={openDeleteDialog}
+              onCloseDeleteDialog={handleCloseDeleteDialog}
               name={schedulingHour.name}
               isDeleting={isDeletingSchedulingHour}
               isDeleted={deleteSchedulingHourSuccess}
@@ -327,7 +327,8 @@ export default function HourSelector({ schedulingHour }) {
               height: "24px",
               borderRadius: "50%",
               placeSelf: "center",
-              color: "primary.dark"
+              color: "primary.dark",
+              gridColumn: "3"
             }}
           >
             {expand ? (
@@ -358,7 +359,7 @@ export default function HourSelector({ schedulingHour }) {
               const isSelected = schedulingHour.daysOfWeek.find(
                 (day) => day.dayIndex === i
               )
-              
+
               return (
                 <Button
                   key={i}

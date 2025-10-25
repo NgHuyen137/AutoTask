@@ -1,3 +1,4 @@
+import dayjs from "dayjs"
 import { useEffect, useState } from "react"
 import { useTaskState } from "~/hooks/useState"
 import { useFetchAllSchedulingHours } from "~/hooks/useQuery"
@@ -86,8 +87,8 @@ export default function TaskCreateButton({ buttonRef, taskCreateFormRef }) {
     updateTask("priority", 1)
     updateTask("tags", [])
     updateTask("smartScheduling", false)
-    updateTask("startAt", null)
-    updateTask("endAt", null)
+    updateTask("startAt", dayjs())
+    updateTask("endAt", dayjs().add(30, "minutes"))
     updateTask("startDate", null)
     updateTask("dueDate", null)
     updateTask("schedulingHour", null)
@@ -148,7 +149,7 @@ export default function TaskCreateButton({ buttonRef, taskCreateFormRef }) {
 
   return (
     <Popper
-      sx={(theme) => ({ zIndex: theme.zIndex.tooltip })}
+      sx={(theme) => ({ zIndex: theme.zIndex.tooltip + 1000 })}
       open={showTaskCreateForm}
       anchorEl={buttonRef.current}
       placement="bottom-end"

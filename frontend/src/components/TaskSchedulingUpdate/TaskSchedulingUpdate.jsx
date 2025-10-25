@@ -17,7 +17,6 @@ import CheckBoxOutlineBlankRoundedIcon from "@mui/icons-material/CheckBoxOutline
 const useResponsiveSchedulingUpdate = (
   taskSchedulingUpdateRef,
   setDatetimeGap,
-  setDatetimeMinWidth,
   responsiveThreshold
 ) => {
   useLayoutEffect(() => {
@@ -26,7 +25,6 @@ const useResponsiveSchedulingUpdate = (
     const observer = new ResizeObserver(() => {
       const width = taskSchedulingUpdateRef.current.offsetWidth
       setDatetimeGap(width <= responsiveThreshold ? 2 : 1.5)
-      setDatetimeMinWidth(width <= responsiveThreshold ? 340 : 250)
     })
 
     observer.observe(taskSchedulingUpdateRef.current)
@@ -36,10 +34,8 @@ const useResponsiveSchedulingUpdate = (
 
 const updateSplit = (task, split, setSplit) => {
   useLayoutEffect(() => {
-    if (task.split && !split)
-      setSplit(true)
-    if (!task.split && split)
-      setSplit(false)
+    if (task.split && !split) setSplit(true)
+    if (!task.split && split) setSplit(false)
   }, [task.split])
 }
 
@@ -56,7 +52,6 @@ export default function TaskSchedulingUpdate({
 
   const taskSchedulingUpdateRef = useRef(null)
   const [datetimeGap, setDatetimeGap] = useState(1.5)
-  const [datetimeMinWidth, setDatetimeMinWidth] = useState(250)
   const responsiveThreshold = 547
 
   const schedulingHours = useFetchAllSchedulingHours()
@@ -66,7 +61,6 @@ export default function TaskSchedulingUpdate({
   useResponsiveSchedulingUpdate(
     taskSchedulingUpdateRef,
     setDatetimeGap,
-    setDatetimeMinWidth,
     responsiveThreshold
   )
 
@@ -191,13 +185,11 @@ export default function TaskSchedulingUpdate({
                   label="Start date"
                   taskState={taskState}
                   datetimeErrorState={startDateErrorState}
-                  props={{ minWidth: `${datetimeMinWidth}px` }}
                 />
                 <DateTimePicker
                   label="Due date"
                   taskState={taskState}
                   datetimeErrorState={dueDateErrorState}
-                  props={{ minWidth: `${datetimeMinWidth}px` }}
                 />
               </Box>
               <SchedulingHourSelector

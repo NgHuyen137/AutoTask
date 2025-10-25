@@ -11,6 +11,11 @@ import { RouterProvider } from "react-router-dom"
 import router from "./routes/router"
 import App from "./App.jsx"
 
+import "@mantine/core/styles.css"
+// ‼️ import dates styles after core package styles
+import "@mantine/dates/styles.css"
+import { MantineProvider } from "@mantine/core"
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -25,15 +30,21 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AuthProvider>
-          <LayoutProvider>
-            <App />
-            <RouterProvider router={router} />
-          </LayoutProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <MantineProvider
+        theme={{
+          fontFamily: "Poppins, sans-serif"
+        }}
+      >
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <AuthProvider>
+            <LayoutProvider>
+              <App />
+              <RouterProvider router={router} />
+            </LayoutProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </MantineProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </StrictMode>

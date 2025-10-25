@@ -1,3 +1,5 @@
+import math
+from typing import List
 from datetime import time, datetime
 from beanie import PydanticObjectId
 
@@ -121,10 +123,16 @@ async def get_tasks(filters: TaskFilter):
       {"$sort": {sort_field: sort_order}},
     ]
 
+  # Get total count for pagination
+  count_pipeline = pipeline.copy()
+  count_pipeline.append({"$count": "total_tasks"})
+  full_results = await Task.aggregate(count_pipeline).to_list()
+  total_tasks = full_results[0]["total_tasks"] if full_results else 0
+  total_pages = math.ceil(total_tasks / filters.limit)
+
   # Pagination
   skip = (filters.page - 1) * filters.limit
   pipeline.extend([{"$skip": skip}, {"$limit": filters.limit}])
-
   results = await Task.aggregate(pipeline).to_list()
 
   if results:
@@ -132,7 +140,7 @@ async def get_tasks(filters: TaskFilter):
     for task in results:
       task["id"] = task.pop("_id")
       tasks.append(Task(**task))
-    return tasks
+    return {"tasks": tasks, "total_pages": total_pages if total_pages > 0 else 1}
   return None
 
 
@@ -161,47 +169,44 @@ async def update_task(id: str, updated_data: TaskUpdate):
   if not existing_task:
     return None, None
 
-  # Check if updated fields related to the smart scheduling feature
-  existing_data_dict = existing_task.model_dump()
-  updated_data_dict = updated_data.model_dump()
+  # Apply changes
+  updated_data_dict = updated_data.model_dump(exclude_unset=True)
+  existing_task = existing_task.model_copy(update=updated_data_dict)
 
-  # Recalculate optimal time if these fields change
+  # Recalculate optimal time if any of these fields change
   fields = ["duration", "start_date", "due_date", "split", "scheduling_hour_id"]
-  updated_fields = []
-  if existing_data_dict["smart_scheduling"] and updated_data_dict["smart_scheduling"]:
-    # Select changed fields
-    for field in fields:
-      old = existing_data_dict[field]
-      new = updated_data_dict[field]
-      if not old and not new:
-        continue
-      if old != new or (not old and new) or (old and not new):
-        updated_fields.append(field)
 
-  # Recalculate optimal time
-  if (updated_fields and updated_data_dict["smart_scheduling"]) or (
-    not existing_data_dict["smart_scheduling"] and updated_data_dict["smart_scheduling"]
+  if (
+    any(field in updated_data_dict for field in fields)
+    and existing_task.smart_scheduling
   ):
-    time_allocations = await find_optimal_time(updated_data, PydanticObjectId(id))
+    time_allocations = await find_optimal_time(
+      Task(**existing_task.model_dump()), PydanticObjectId(id)
+    )
     if time_allocations:
       updated_data_dict["time_allocations"] = time_allocations
 
   # Update task in MongoDB
-  updated_data_dict["id"] = id  # Add id to updated data
-  updated_task = Task(**updated_data_dict)
-  await updated_task.save()
+  await existing_task.save()
 
   # If there are overdue tasks, reschedule them
-  if updated_task:
-    # Get overdue tasks rescheduled successfully
-    updated_overdue_tasks = await reschedule_overdue_tasks(updated_task.id)
+  updated_overdue_tasks = await reschedule_overdue_tasks(existing_task.id)
 
-    if updated_overdue_tasks:  # Update data in Mongodb
-      for updated_overdue_task in updated_overdue_tasks:
-        await updated_overdue_task.save()
+  if updated_overdue_tasks:  # Update data in Mongodb
+    for updated_overdue_task in updated_overdue_tasks:
+      await updated_overdue_task.save()
 
-    return updated_task, updated_overdue_tasks
-  return None, None
+  return existing_task, updated_overdue_tasks
+
+
+async def update_multiple_tasks(ids: List[str], updated_data: TaskUpdate):
+  # Update priority only
+  collection = Task.get_motor_collection()
+  object_ids = [PydanticObjectId(task_id) for task_id in ids]
+  result = await collection.update_many(
+    {"_id": {"$in": object_ids}}, {"$set": {"priority": updated_data.priority}}
+  )
+  return result.modified_count
 
 
 async def delete_task(id: str):
@@ -220,3 +225,22 @@ async def delete_task(id: str):
 
     return deleted_task, updated_overdue_tasks
   return None, None
+
+
+async def delete_multiple_tasks(ids: List[str]):
+  from app.services.taskService.rescheduler import reschedule_overdue_tasks
+
+  collection = Task.get_motor_collection()
+  object_ids = [PydanticObjectId(task_id) for task_id in ids]
+  result = await collection.delete_many({"_id": {"$in": object_ids}})
+
+  if result.deleted_count > 0:
+    # Get overdue tasks rescheduled successfully
+    updated_overdue_tasks = await reschedule_overdue_tasks()
+
+    if updated_overdue_tasks:  # Update data in Mongodb
+      for updated_overdue_task in updated_overdue_tasks:
+        await updated_overdue_task.save()
+
+    return updated_overdue_tasks
+  return None

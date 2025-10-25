@@ -78,20 +78,39 @@ export const useEffectAfterMount = (effect, dependencies) => {
 export const useClickOutsideMoreOptionsPopper = (
   moreOptionsAnchor,
   moreOptionsPaperRef,
-  setOpenMoreOptions,
+  setMoreOptionsAnchor,
   openDeleteDialog
 ) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         !moreOptionsPaperRef.current?.contains(event.target) &&
-        !moreOptionsAnchor.current?.contains(event.target) &&
+        !moreOptionsAnchor?.contains(event.target) &&
         !openDeleteDialog
-      )
-        setOpenMoreOptions(false)
+      ) {
+        setMoreOptionsAnchor(null)
+      }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
   }, [openDeleteDialog])
+}
+
+export const useHeightObserver = (ref, setHeight) => {
+  useEffect(() => {
+    const curRef = ref.current
+    if (!curRef) return
+
+    // Create a ResizeObserver to track height changes
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setHeight(entry.contentRect.height)
+      }
+    })
+
+    observer.observe(curRef)
+
+    return () => observer.disconnect()
+  }, [])
 }

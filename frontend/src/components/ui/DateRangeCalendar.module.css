@@ -1,0 +1,51 @@
+/* DatePicker.module.css */
+.day {
+  border-radius: 50% !important;
+  font-weight: 500;
+  width: 1.6rem !important;
+  height: 1.6rem !important;
+}
+
+.day:not([data-static], [data-disabled], [data-selected], [data-in-range]) {
+  color: black !important;
+}
+  
+.day:hover:not([data-static], [data-disabled], [data-selected], [data-in-range]) {
+  background-color: #F2F6FF !important;
+}
+
+.day[data-selected] {
+  background-color: #598aff;
+  color: white;
+}
+
+.day[data-selected]:hover {
+  background-color: #598aff;
+}
+
+.day[data-in-range]:not([data-selected]) {
+  background-color: #F2F6FF !important;
+  color: #598aff !important;
+}
+
+.day[data-in-range]:hover:not([data-selected]) {
+  background-color: #e6eeff !important;
+}
+
+.weekday {
+  color: rgba(0, 0, 0, 0.6) !important;
+  font-weight: 600 !important;
+}
+
+.monthCell {
+  padding: 2px !important;
+}
+
+.monthCell[data-with-spacing] {
+  padding: 2px !important;
+}
+
+.calendarHeaderLevel {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}

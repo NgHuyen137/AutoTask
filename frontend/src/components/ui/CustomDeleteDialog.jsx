@@ -39,20 +39,19 @@ const DeleteIcon = () => (
 )
 
 export default function CustomDeleteDialog({
-  openDeleteDialogState,
+  openDeleteDialog,
+  onCloseDeleteDialog,
   name,
   isDeleting,
   isDeleted,
   onDelete
 }) {
-  const { openDeleteDialog, setOpenDeleteDialog } = openDeleteDialogState
-
   return (
     <Dialog
       open={openDeleteDialog}
       onClose={(event, reason) => {
         if (String(reason) === "backdropClick") return
-        setOpenDeleteDialog(false)
+        onCloseDeleteDialog()
       }}
       slotProps={{
         paper: {
@@ -64,6 +63,7 @@ export default function CustomDeleteDialog({
         }
       }}
       sx={{
+        zIndex: (theme) => theme.zIndex.modal + 1000,
         "& .MuiDialogContent-root": {
           padding: "12px 24px"
         }
@@ -100,7 +100,7 @@ export default function CustomDeleteDialog({
       <DialogActions sx={{ justifyContent: "center", gap: 1 }}>
         <Button
           variant="contained"
-          onClick={() => setOpenDeleteDialog(false)}
+          onClick={onCloseDeleteDialog}
           sx={{
             width: "120px",
             fontSize: "0.8rem",

@@ -3,7 +3,10 @@ import Tooltip from "@mui/material/Tooltip"
 import IconButton from "@mui/material/IconButton"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 
-export default function MoreOptionsButton({ openMoreOptions, onOpenMoreOptions }) {
+export default function MoreOptionsButton({
+  openMoreOptions,
+  onOpenMoreOptions
+}) {
   const [hoverMoreOptionsButton, setHoverMoreOptionsButton] = useState(false)
 
   return (
@@ -13,7 +16,10 @@ export default function MoreOptionsButton({ openMoreOptions, onOpenMoreOptions }
       open={!openMoreOptions && hoverMoreOptionsButton}
     >
       <IconButton
-        onClick={onOpenMoreOptions}
+        onClick={(e) => {
+          e.stopPropagation()
+          onOpenMoreOptions(e)
+        }}
         onMouseEnter={() => setHoverMoreOptionsButton(true)}
         onMouseLeave={() => setHoverMoreOptionsButton(false)}
         sx={{ padding: "4px" }}

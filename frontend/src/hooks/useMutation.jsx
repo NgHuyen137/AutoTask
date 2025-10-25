@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { 
-  createNewTaskAPI, 
-  updateTaskAPI, 
+import {
+  createNewTaskAPI,
+  updateTaskAPI,
+  updateMultipleTasksAPI,
   deleteTaskAPI,
+  deleteMultipleTasksAPI,
   createNewSchedulingHourAPI,
   updateSchedulingHourAPI,
   deleteSchedulingHourAPI,
@@ -14,7 +16,6 @@ import {
   logoutAPI,
   refreshAccessTokenAPI
 } from "~/apis"
-import { usePlannerContext } from "~/hooks/useContext"
 
 export const useCreateNewSchedulingHour = () => {
   const queryClient = useQueryClient()
@@ -25,9 +26,13 @@ export const useCreateNewSchedulingHour = () => {
     isSuccess,
     reset
   } = useMutation({
-    mutationFn: (newSchedulingHourData) => createNewSchedulingHourAPI(newSchedulingHourData),
+    mutationFn: (newSchedulingHourData) =>
+      createNewSchedulingHourAPI(newSchedulingHourData),
     onSuccess: (data) => {
-      queryClient.setQueryData(["schedulingHours"], (oldData = []) => [...oldData, data])
+      queryClient.setQueryData(["schedulingHours"], (oldData = []) => [
+        ...oldData,
+        data
+      ])
     }
   })
 
@@ -48,7 +53,8 @@ export const useUpdateSchedulingHour = () => {
     isSuccess,
     reset
   } = useMutation({
-    mutationFn: ({ id, updatedSchedulingHourData }) => updateSchedulingHourAPI(id, updatedSchedulingHourData),
+    mutationFn: ({ id, updatedSchedulingHourData }) =>
+      updateSchedulingHourAPI(id, updatedSchedulingHourData),
     onSuccess: (data, variables) => {
       queryClient.setQueryData(["schedulingHours"], (oldData) => {
         if (!oldData) return oldData
@@ -80,7 +86,9 @@ export const useDeleteSchedulingHour = () => {
     onSuccess: (data, variables) => {
       queryClient.setQueryData(["schedulingHours"], (oldData) => {
         if (!oldData) return oldData
-        return oldData.filter((schedulingHour) => schedulingHour._id !== variables.id)
+        return oldData.filter(
+          (schedulingHour) => schedulingHour._id !== variables.id
+        )
       })
     }
   })
@@ -93,10 +101,8 @@ export const useDeleteSchedulingHour = () => {
   }
 }
 
-
 export const useCreateNewTask = () => {
   const queryClient = useQueryClient()
-  const { startOfWeek, endOfWeek } = usePlannerContext()
 
   const {
     mutate: createNewTask,
@@ -105,11 +111,11 @@ export const useCreateNewTask = () => {
     reset
   } = useMutation({
     mutationFn: (newTaskData) => createNewTaskAPI(newTaskData),
-    onSuccess: (data) => {
-      const queryKey = ["tasks", { startOfWeek, endOfWeek }]
-      queryClient.setQueryData(queryKey, (oldData = []) => {
-        if (!oldData) return [data]
-        return [...oldData, data]
+    onSuccess: () => {
+      // Invalidate queries to refetch from the server
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+        exact: false
       })
     }
   })
@@ -124,7 +130,6 @@ export const useCreateNewTask = () => {
 
 export const useUpdateTask = () => {
   const queryClient = useQueryClient()
-  const { startOfWeek, endOfWeek } = usePlannerContext()
 
   const {
     mutate: updateSingleTask,
@@ -133,16 +138,12 @@ export const useUpdateTask = () => {
     reset
   } = useMutation({
     mutationFn: ({ id, updatedTaskData }) => updateTaskAPI(id, updatedTaskData),
-    onSuccess: (data, variables) => {
-      queryClient.setQueryData(
-        ["tasks", { startOfWeek, endOfWeek }],
-        (oldData) => {
-          if (!oldData) return oldData
-          return oldData.map((task) =>
-            task._id === variables.id ? data.updated_task : task
-          )
-        }
-      )
+    onSuccess: () => {
+      // Invalidate queries to refetch from the server
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+        exact: false
+      })
     }
   })
 
@@ -154,9 +155,36 @@ export const useUpdateTask = () => {
   }
 }
 
+export const useUpdateMultipleTasks = () => {
+  const queryClient = useQueryClient()
+
+  const {
+    mutate: updateMultipleTasks,
+    isLoading,
+    isSuccess,
+    reset
+  } = useMutation({
+    mutationFn: ({ ids, updatedTaskData }) =>
+      updateMultipleTasksAPI(ids, updatedTaskData),
+    onSuccess: () => {
+      // Invalidate queries to refetch from the server
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+        exact: false
+      })
+    }
+  })
+
+  return {
+    updateMultipleTasks,
+    isLoading,
+    isSuccess,
+    reset
+  }
+}
+
 export const useDeleteTask = () => {
   const queryClient = useQueryClient()
-  const { startOfWeek, endOfWeek } = usePlannerContext()
 
   const {
     mutate: deleteSingleTask,
@@ -165,25 +193,12 @@ export const useDeleteTask = () => {
     reset
   } = useMutation({
     mutationFn: ({ id }) => deleteTaskAPI(id),
-    onSuccess: (data, variables) => {
-      queryClient.setQueryData(
-        ["tasks", { startOfWeek, endOfWeek }],
-        (oldData) => {
-          let updatedTasks = oldData.filter((task) => task._id !== variables.id)
-
-          if (data.updated_overdue_tasks) {
-            const updatedOverdueTaskIds = 
-              data.updated_overdue_tasks.map(updated_overdue_task => updated_overdue_task._id)
-            updatedTasks = updatedTasks.map((task) =>
-              updatedOverdueTaskIds.includes(task._id) ? 
-                data.updated_overdue_tasks.find(updated_overdue_task => updated_overdue_task._id === task._id) : 
-                task
-            )
-          }
-
-          return updatedTasks
-        }
-      )
+    onSuccess: () => {
+      // Invalidate queries to refetch from the server
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+        exact: false
+      })
     }
   })
 
@@ -195,6 +210,32 @@ export const useDeleteTask = () => {
   }
 }
 
+export const useDeleteMultipleTasks = () => {
+  const queryClient = useQueryClient()
+
+  const {
+    mutate: deleteMultipleTasks,
+    isLoading,
+    isSuccess,
+    reset
+  } = useMutation({
+    mutationFn: (ids) => deleteMultipleTasksAPI(ids),
+    onSuccess: () => {
+      // Invalidate queries to refetch from the server
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
+        exact: false
+      })
+    }
+  })
+
+  return {
+    deleteMultipleTasks,
+    isLoading,
+    isSuccess,
+    reset
+  }
+}
 
 export const useCreateNewAccount = () => {
   const {

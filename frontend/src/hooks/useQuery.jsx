@@ -1,11 +1,11 @@
-import validator from "validator"
 import { useQuery } from "@tanstack/react-query"
-import { 
+import {
   fetchUserAPI,
   verifyEmailAPI,
   verifyPasswordResetTokenAPI,
-  fetchAllSchedulingHoursAPI, 
-  fetchAllTasksAPI
+  fetchAllSchedulingHoursAPI,
+  fetchAllTasksAPI,
+  fetchTaskByIdAPI
 } from "~/apis"
 import { usePlannerContext } from "~/hooks/useContext"
 
@@ -21,17 +21,46 @@ export const useFetchAllSchedulingHours = () => {
 }
 
 // For Task
-export const useFetchAllTasks = () => {
+export const useFetchAllTasks = (filters = {}) => {
   const { startOfWeek, endOfWeek } = usePlannerContext()
 
-  const { data: tasks } = useQuery({
-    queryKey: ["tasks", { startOfWeek, endOfWeek }],
-    queryFn: () => fetchAllTasksAPI(startOfWeek, endOfWeek),
-    enabled: startOfWeek !== "" && endOfWeek !== "",
-    retry: false
-  })
+  if (startOfWeek && endOfWeek) {
+    const { data, error } = useQuery({
+      queryKey: ["tasks", { startOfWeek, endOfWeek }],
+      queryFn: () =>
+        fetchAllTasksAPI({
+          start_of_week: startOfWeek,
+          end_of_week: endOfWeek
+        }),
+      enabled: startOfWeek !== "" && endOfWeek !== "",
+      retry: false
+    })
+    return { data, error }
+  } else {
+    const { data, error } = useQuery({
+      queryKey: ["tasks", { filters }],
+      queryFn: () => fetchAllTasksAPI(filters),
+      retry: false,
+      cacheTime: 0, // disables cache
+      staleTime: 0, // always consider data stale
+      refetchOnWindowFocus: false,
+      refetchOnMount: true // always fetch on mount
+    })
+    return { data, error }
+  }
+}
 
-  return tasks
+export const useFetchTaskById = (id) => {
+  return useQuery({
+    queryKey: ["task", id],
+    queryFn: () => fetchTaskByIdAPI(id),
+    enabled: !!id,
+    retry: false,
+    cacheTime: 0,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
+  })
 }
 
 // For User
@@ -60,7 +89,11 @@ export const useVerifyEmail = (verifyToken) => {
 }
 
 export const useVerifyPasswordResetToken = (resetToken) => {
-  const { data: verifyResponse, isLoading, isSuccess } = useQuery({
+  const {
+    data: verifyResponse,
+    isLoading,
+    isSuccess
+  } = useQuery({
     queryKey: ["resetTokens", resetToken],
     queryFn: () => verifyPasswordResetTokenAPI(resetToken),
     enabled: !!resetToken,

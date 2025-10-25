@@ -1,7 +1,11 @@
 import { NavLink } from "react-router-dom"
 import { useMediaQuery } from "@mui/material"
 import { useRef, useEffect } from "react"
-import { useAuthContext, useLayoutContext, usePlannerContext } from "~/hooks/useContext"
+import {
+  useAuthContext,
+  useLayoutContext,
+  usePlannerContext
+} from "~/hooks/useContext"
 import { useScreenSize } from "~/hooks/useEffect"
 import { useLogout } from "~/hooks/useMutation"
 
@@ -26,7 +30,11 @@ const sideBarItems = [
   { Name: "Planner", Icon: CalendarTodayOutlinedIcon, path: "/planner" },
   { Name: "Tasks", Icon: AssignmentTurnedInOutlinedIcon, path: "/tasks" },
   { Name: "Analytics", Icon: DonutLargeOutlinedIcon, path: "/analytics" },
-  { Name: "Scheduling Hours", Icon: ScheduleOutlinedIcon, path: "/scheduling-hours" }
+  {
+    Name: "Scheduling Hours",
+    Icon: ScheduleOutlinedIcon,
+    path: "/scheduling-hours"
+  }
 ]
 
 const useSidebarMounted = () => {
@@ -48,13 +56,8 @@ export default function SideBar() {
   const screenWidth = useScreenSize()
 
   const { showTaskCreatePopup } = usePlannerContext()
-  const { 
-    user, 
-    setUser, 
-    setAccessToken,
-    setIsLoggingOut,
-    setLogoutSuccess
-  } = useAuthContext()
+  const { user, setUser, setAccessToken, setIsLoggingOut, setLogoutSuccess } =
+    useAuthContext()
 
   const {
     openSidebar,
@@ -146,6 +149,9 @@ export default function SideBar() {
           transform: "none !important"
         })
       }}
+      sx={{
+        zIndex: (theme) => `${theme.zIndex.drawer + 1200} !important`
+      }}
     >
       <Box
         onMouseEnter={handleSidebarOpen}
@@ -153,8 +159,8 @@ export default function SideBar() {
         role="presentation"
         sx={{ height: "100%" }}
       >
-        <List 
-          sx={{ 
+        <List
+          sx={{
             height: "100%",
             display: "flex",
             flexDirection: "column"
@@ -286,79 +292,82 @@ export default function SideBar() {
             ))}
           </Box>
 
-          {
-            isMobile &&
-            (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "flex-end",
-                  flex: 1,
-                  gap: 1,
-                  padding: 1
-                }}
-              >
-                <Divider sx={{ backgroundColor: "#ccdbfd" }} />
-                <ListItem sx={{ padding: 0 }}>
-                  <ListItemButton>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "20px"
-                      }}
-                    >
-                      <PermIdentityRoundedIcon 
-                        sx={{ fontSize: "1.25rem", color: "#FFF" }} 
-                      />
-                      <Box>
-                        <Typography 
-                          sx={{ 
-                            fontSize: "0.9rem",
-                            color: "#FFFFFF", 
-                            fontWeight: 600,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            maxWidth: "160px"
-                          }}
-                        >
-                          {user ? user["name"] : " "}
-                        </Typography>
-                        <Typography 
-                          sx={{ 
-                            color: "#FFFFFF",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            maxWidth: "160px"
-                          }}
-                        >
-                          {user ? user["email"] : " "}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </ListItemButton>
-                </ListItem>
-
-                <Divider sx={{ backgroundColor: "#ccdbfd" }} />
-                
-                <ListItem sx={{ padding: 0 }}>
-                  <ListItemButton
-                    onClick={handleLogout}
+          {isMobile && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                flex: 1,
+                gap: 1,
+                padding: 1
+              }}
+            >
+              <Divider sx={{ backgroundColor: "#ccdbfd" }} />
+              <ListItem sx={{ padding: 0 }}>
+                <ListItemButton>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "20px"
+                    }}
                   >
-                    <ListItemIcon sx={{ minWidth: "40px" }}>
-                      <LogoutRoundedIcon sx={{ fontSize: "1.25rem", color: "#FFF" }} />
-                    </ListItemIcon>
-                    <Typography sx={{ color: "#FFFFFF", fontSize: "0.9rem", fontWeight: 500 }}>
-                      Log out
-                    </Typography>
-                  </ListItemButton>
-                </ListItem>
-              </Box>
-            )
-          }
+                    <PermIdentityRoundedIcon
+                      sx={{ fontSize: "1.25rem", color: "#FFF" }}
+                    />
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: "0.9rem",
+                          color: "#FFFFFF",
+                          fontWeight: 600,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "160px"
+                        }}
+                      >
+                        {user ? user["name"] : " "}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: "#FFFFFF",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "160px"
+                        }}
+                      >
+                        {user ? user["email"] : " "}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </ListItemButton>
+              </ListItem>
+
+              <Divider sx={{ backgroundColor: "#ccdbfd" }} />
+
+              <ListItem sx={{ padding: 0 }}>
+                <ListItemButton onClick={handleLogout}>
+                  <ListItemIcon sx={{ minWidth: "40px" }}>
+                    <LogoutRoundedIcon
+                      sx={{ fontSize: "1.25rem", color: "#FFF" }}
+                    />
+                  </ListItemIcon>
+                  <Typography
+                    sx={{
+                      color: "#FFFFFF",
+                      fontSize: "0.9rem",
+                      fontWeight: 500
+                    }}
+                  >
+                    Log out
+                  </Typography>
+                </ListItemButton>
+              </ListItem>
+            </Box>
+          )}
         </List>
       </Box>
     </Drawer>

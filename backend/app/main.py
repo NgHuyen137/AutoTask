@@ -21,7 +21,7 @@ from app.exceptions.authExceptions import (
   AccessTokenExpiredError,
   RefreshTokenExpiredError,
   UserAlreadyExistsError,
-  UserNotFoundError
+  UserNotFoundError,
 )
 from app.routes.userRoutes import user_router
 from app.routes.authRoutes import auth_router
@@ -56,6 +56,7 @@ app = FastAPI(
 
 app.add_middleware(SessionMiddleware, secret_key=security_settings.FASTAPI_SECRET_KEY)
 
+
 # Add CORSMiddleware to allow the frontend to access the API
 app.add_middleware(
   CORSMiddleware,
@@ -71,84 +72,85 @@ app.add_middleware(
     "localhost",
     "127.0.0.1",
     "*.onrender.com",
-    "autotask-api.onrender.com"
-  ]
+    "autotask-api.onrender.com",
+  ],
 )
+
 
 @app.get("/")
 async def ping():
   return JSONResponse(content={"message": "pong"})
+
 
 app.add_exception_handler(
   PasswordAndConfirmPasswordMismatchError,
   creat_exception_handler(
     status_code=status.HTTP_400_BAD_REQUEST,
     initial_detail="Password and Confirm password do not match.",
-  )
+  ),
 )
 
 app.add_exception_handler(
   InvalidTokenError,
   creat_exception_handler(
     status_code=status.HTTP_400_BAD_REQUEST, initial_detail="Invalid token."
-  )
+  ),
 )
 
 app.add_exception_handler(
   UnauthorizedError,
   creat_exception_handler(
     status_code=status.HTTP_401_UNAUTHORIZED, initial_detail="Invalid credentials."
-  )
+  ),
 )
 
 app.add_exception_handler(
   EmailVerificationError,
   creat_exception_handler(
-    status_code=status.HTTP_403_FORBIDDEN,
-    initial_detail="Email has not been verified."
-  )
+    status_code=status.HTTP_403_FORBIDDEN, initial_detail="Email has not been verified."
+  ),
 )
 
 app.add_exception_handler(
   AccessTokenExpiredError,
   creat_exception_handler(
     status_code=status.HTTP_401_UNAUTHORIZED, initial_detail="Access token expired."
-  )
+  ),
 )
 
 app.add_exception_handler(
   RefreshTokenExpiredError,
   creat_exception_handler(
     status_code=status.HTTP_401_UNAUTHORIZED, initial_detail="Refresh token expired."
-  )
+  ),
 )
 
 app.add_exception_handler(
   UserNotFoundError,
   creat_exception_handler(
     status_code=status.HTTP_404_NOT_FOUND, initial_detail="User not found."
-  )
+  ),
 )
 
 app.add_exception_handler(
   UserAlreadyExistsError,
   creat_exception_handler(
     status_code=status.HTTP_409_CONFLICT, initial_detail="User already exists."
-  )
+  ),
 )
 
 app.add_exception_handler(
   AccountNotVerifiedError,
   creat_exception_handler(
     status_code=status.HTTP_403_FORBIDDEN, initial_detail="Account is not verified."
-  )
+  ),
 )
 
 app.add_exception_handler(
   TaskNotFoundError,
   creat_exception_handler(
     status_code=status.HTTP_404_NOT_FOUND, initial_detail="No task found."
-  )
+  ),
 )
 
 app.add_exception_handler(
@@ -156,14 +158,14 @@ app.add_exception_handler(
   creat_exception_handler(
     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     initial_detail="Cannot find an appropriate free time slot to schedule the task.",
-  )
+  ),
 )
 
 app.add_exception_handler(
   SchedulingHourNotFoundError,
   creat_exception_handler(
     status_code=status.HTTP_404_NOT_FOUND, initial_detail="No scheduling hour found."
-  )
+  ),
 )
 
 app.include_router(user_router, prefix=version_prefix)

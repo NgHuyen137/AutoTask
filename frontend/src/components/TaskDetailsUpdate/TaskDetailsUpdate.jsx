@@ -31,11 +31,7 @@ const StyledListItemTitle = styled(ListItemText)({
   }
 })
 
-export default function TaskDetailsUpdate({
-  taskSidebarRef,
-  taskState,
-  taskNameErrorState
-}) {
+export default function TaskDetailsUpdate({ taskState, taskNameErrorState }) {
   const [expand, setExpand] = useState(true)
   const taskDetailsUpdateRef = useRef(null)
 

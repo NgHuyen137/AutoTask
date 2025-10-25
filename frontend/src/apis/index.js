@@ -30,14 +30,18 @@ export const deleteSchedulingHourAPI = async (id) => {
 
 
 // For Task
-export const fetchAllTasksAPI = async (start_of_week, end_of_week) => {
+export const fetchAllTasksAPI = async (filters = {}) => {
   const response = await api.get("/tasks", {
     params: {
-      start_of_week,
-      end_of_week
+      ...filters
     },
     headers: { "Content-Type": "application/json" }
   })
+  return response.data
+}
+
+export const fetchTaskByIdAPI = async (id) => {
+  const response = await api.get(`/tasks/${id}`)
   return response.data
 }
 
@@ -51,8 +55,21 @@ export const updateTaskAPI = async (id, updatedTaskData) => {
   return response.data
 }
 
+export const updateMultipleTasksAPI = async (ids, updatedTaskData) => {
+  const response = await api.put(`/tasks/bulk-update`, {
+    ids: ids,
+    updated_data: updatedTaskData
+  })
+  return response.data
+}
+
 export const deleteTaskAPI = async (id) => {
   const response = await api.delete(`/tasks/${id}`)
+  return response.data
+}
+
+export const deleteMultipleTasksAPI = async (ids) => {
+  const response = await api.delete(`/tasks/bulk-deletion`, { data: { ids } })
   return response.data
 }
 

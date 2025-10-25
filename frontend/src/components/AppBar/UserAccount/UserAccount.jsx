@@ -44,7 +44,8 @@ const clickOutside = (accountAnchorEl, setOpenAccountMenu) => {
 export default function UserAccount() {
   const [openAccountMenu, setOpenAccountMenu] = useState(false)
   const [accountAnchorEl, setAccountAnchorEl] = useState(null)
-  const { user, setUser, setAccessToken, setIsLoggingOut, setLogoutSuccess } = useAuthContext()
+  const { user, setUser, setAccessToken, setIsLoggingOut, setLogoutSuccess } =
+    useAuthContext()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [picture, setPicture] = useState("")
@@ -52,12 +53,12 @@ export default function UserAccount() {
 
   clickOutside(accountAnchorEl, setOpenAccountMenu)
   getUserDetails(user, setName, setEmail, setPicture)
-  
+
   const handleAccountMenuClick = (event) => {
     setAccountAnchorEl(event.currentTarget)
     setOpenAccountMenu((prev) => !prev)
   }
-  
+
   const { logout, isLoading, isSuccess } = useLogout()
   const handleLogout = () => {
     logout({
@@ -69,10 +70,9 @@ export default function UserAccount() {
   }
 
   useEffect(() => {
-    setIsLoggingOut(isLoading)
+    //setIsLoggingOut(isLoading)
     setLogoutSuccess(isSuccess)
   }, [isLoading, isSuccess])
-  
 
   return (
     <>
@@ -90,53 +90,47 @@ export default function UserAccount() {
             gap: 0.4
           }}
         >
-          {
-            picture && 
-            (
-              <Avatar
-                src={picture}
-                sx={{
-                  width: "24px",
-                  height: "24px"
-                }}
-              />
-            )
-          }
+          {picture && (
+            <Avatar
+              src={picture}
+              sx={{
+                width: "24px",
+                height: "24px"
+              }}
+            />
+          )}
 
-          {
-            !picture &&
-            (
-              <Avatar
-                sx={{
-                  backgroundColor: "#78909C",
-                  width: "24px",
-                  height: "24px",
-                  fontSize: "0.8rem"
-                }}
-              >
-                {name ? name[0].toUpperCase() : " "}
-              </Avatar>
-            )
-          }
+          {!picture && (
+            <Avatar
+              sx={{
+                backgroundColor: "#78909C",
+                width: "24px",
+                height: "24px",
+                fontSize: "0.8rem"
+              }}
+            >
+              {name ? name[0].toUpperCase() : " "}
+            </Avatar>
+          )}
 
-          <KeyboardArrowDownRoundedIcon 
-            sx={{ 
-              fontSize: "1.2rem", 
-              color: "black" 
-            }} 
+          <KeyboardArrowDownRoundedIcon
+            sx={{
+              fontSize: "1.2rem",
+              color: "black"
+            }}
           />
         </Box>
       </Button>
-      <Popper 
-        open={openAccountMenu} 
+      <Popper
+        open={openAccountMenu}
         anchorEl={accountAnchorEl}
         placement="bottom-end"
         transition
         sx={(theme) => ({ zIndex: theme.zIndex.tooltip })}
       >
         {({ TransitionProps }) => (
-          <Grow 
-            {...TransitionProps} 
+          <Grow
+            {...TransitionProps}
             timeout={350}
             style={{ transformOrigin: "top right" }}
           >
@@ -145,11 +139,11 @@ export default function UserAccount() {
               sx={{
                 borderRadius: "8px",
                 maxWidth: "240px",
-                backgroundColor: "#353740",
+                backgroundColor: "#353740"
               }}
             >
-              <List 
-                sx={{ 
+              <List
+                sx={{
                   px: 1,
                   display: "flex",
                   flexDirection: "column",
@@ -171,39 +165,33 @@ export default function UserAccount() {
                       gap: 2
                     }}
                   >
-                    {
-                      picture && 
-                      (
-                        <Avatar
-                          src={picture}
-                          sx={{
-                            width: "24px",
-                            height: "24px"
-                          }}
-                        />
-                      )
-                    }
+                    {picture && (
+                      <Avatar
+                        src={picture}
+                        sx={{
+                          width: "24px",
+                          height: "24px"
+                        }}
+                      />
+                    )}
 
-                    {
-                      !picture &&
-                      (
-                        <Avatar
-                          sx={{
-                            backgroundColor: "#78909C",
-                            width: "24px",
-                            height: "24px",
-                            fontSize: "0.8rem"
-                          }}
-                        >
-                          {name ? name[0].toUpperCase() : " "}
-                        </Avatar>
-                      )
-                    }
+                    {!picture && (
+                      <Avatar
+                        sx={{
+                          backgroundColor: "#78909C",
+                          width: "24px",
+                          height: "24px",
+                          fontSize: "0.8rem"
+                        }}
+                      >
+                        {name ? name[0].toUpperCase() : " "}
+                      </Avatar>
+                    )}
                     <Box>
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           fontSize: "0.9rem",
-                          color: "#FFFFFF", 
+                          color: "#FFFFFF",
                           fontWeight: 600,
                           whiteSpace: "nowrap",
                           overflow: "hidden",
@@ -213,8 +201,8 @@ export default function UserAccount() {
                       >
                         {name}
                       </Typography>
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           color: "#FFFFFF",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
@@ -241,9 +229,17 @@ export default function UserAccount() {
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: "35px" }}>
-                    <LogoutRoundedIcon sx={{ fontSize: "1rem", color: "#dadadb" }} />
+                    <LogoutRoundedIcon
+                      sx={{ fontSize: "1rem", color: "#dadadb" }}
+                    />
                   </ListItemIcon>
-                  <Typography sx={{ color: "#FFFFFF", fontSize: "0.9rem", fontWeight: 500 }}>
+                  <Typography
+                    sx={{
+                      color: "#FFFFFF",
+                      fontSize: "0.9rem",
+                      fontWeight: 500
+                    }}
+                  >
                     Log out
                   </Typography>
                 </ListItemButton>
