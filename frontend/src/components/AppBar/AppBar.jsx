@@ -15,15 +15,23 @@ import Typography from "@mui/material/Typography"
 import AddRoundedIcon from "@mui/icons-material/AddRounded"
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded"
 
-export default function AppBar({ appBarName, menuButtonRef, taskCreateFormRef }) {
+export default function AppBar({
+  appBarName,
+  menuButtonRef,
+  taskCreateFormRef
+}) {
   const isMobile = useMediaQuery("(max-width: 499px)")
 
   const screenWidth = useScreenSize()
   const sidebarScreenSizeThreshold = 800
 
   const buttonRef = useRef(null)
-  const { setOpenSidebar, setEnterTaskCreateForm, showTaskCreateForm, setShowTaskCreateForm } =
-    useLayoutContext()
+  const {
+    setOpenSidebar,
+    setEnterTaskCreateForm,
+    showTaskCreateForm,
+    setShowTaskCreateForm
+  } = useLayoutContext()
 
   return (
     <Box>
@@ -48,7 +56,7 @@ export default function AppBar({ appBarName, menuButtonRef, taskCreateFormRef })
             variant="h1"
             component="div"
             color="text.primary"
-            fontWeight={500}
+            fontWeight={510}
           >
             {appBarName}
           </Typography>
@@ -113,10 +121,7 @@ export default function AppBar({ appBarName, menuButtonRef, taskCreateFormRef })
               taskCreateFormRef={taskCreateFormRef}
             />
 
-            {
-              !isMobile &&
-              <UserAccount />
-            }
+            {!isMobile && <UserAccount />}
 
             {screenWidth <= sidebarScreenSizeThreshold && (
               <IconButton

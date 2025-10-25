@@ -1,16 +1,24 @@
-from typing import Annotated
+from typing import Annotated, List
 from fastapi import APIRouter, Depends, Response, status
 
 from app.dependencies.auth import get_current_user
 from app.exceptions.taskExceptions import TaskNotFoundError
 from app.models.userModel import User
-from app.schemas.taskSchema import TaskCreate, TaskUpdate, TaskFilter
+from app.schemas.taskSchema import (
+  TaskCreate,
+  TaskUpdate,
+  TaskFilter,
+  MultipleTasksUpdate,
+  MultipleTasksDelete,
+)
 from app.services.taskService.crud import (
   create_task,
   delete_task,
   get_task_by_id,
   get_tasks,
   update_task,
+  update_multiple_tasks,
+  delete_multiple_tasks,
 )
 
 task_router = APIRouter()
@@ -31,9 +39,9 @@ async def get_all_tasks(
   current_user: Annotated[User, Depends(get_current_user)],
   filters: TaskFilter = Depends(),
 ):
-  tasks = await get_tasks(filters)
-  if tasks:
-    return tasks
+  results = await get_tasks(filters)
+  if results:
+    return results
   raise TaskNotFoundError()
 
 
@@ -47,6 +55,16 @@ async def create_single_task(
   if new_task:
     response.status_code = status.HTTP_201_CREATED
     return new_task
+
+
+@task_router.put("/tasks/bulk-update")
+async def update_tasks(
+  request: MultipleTasksUpdate, current_user: Annotated[User, Depends(get_current_user)]
+):
+  result = await update_multiple_tasks(request.ids, request.updated_data)
+  if result > 0:
+    return {"n_updated_tasks": result}
+  raise TaskNotFoundError()
 
 
 @task_router.put("/tasks/{id}")
@@ -63,6 +81,14 @@ async def update_single_task(
     }
 
   raise TaskNotFoundError()
+
+
+@task_router.delete("/tasks/bulk-deletion")
+async def delete_tasks(
+  request: MultipleTasksDelete, current_user: Annotated[User, Depends(get_current_user)]
+):
+  result = await delete_multiple_tasks(request.ids)
+  return {"updated_overdue_tasks": result}
 
 
 @task_router.delete("/tasks/{id}")

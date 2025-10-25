@@ -1,6 +1,6 @@
-import { useScreenSize } from '~/hooks/useEffect'
-import { useLayoutContext } from '~/hooks/useContext'
-import Box from '@mui/material/Box'
+import { useScreenSize } from "~/hooks/useEffect"
+import { useLayoutContext } from "~/hooks/useContext"
+import Box from "@mui/material/Box"
 
 export default function MainContainer({ children }) {
   const sidebarScreenSizeThreshold = 800
@@ -11,13 +11,16 @@ export default function MainContainer({ children }) {
   return (
     <Box
       sx={(theme) => ({
+        display: "flex",
+        flexDirection: "column",
+        height: "100dvh",
         flexGrow: 1,
         transition: sidebarMounted
-          ? theme.transitions.create('margin', {
+          ? theme.transitions.create("margin", {
               easing: theme.transitions.easing.easeInOut,
               duration: theme.transitions.duration.standard
             })
-          : 'none',
+          : "none",
         marginLeft:
           (openSidebar || lockSidebar) &&
           screenWidth > sidebarScreenSizeThreshold

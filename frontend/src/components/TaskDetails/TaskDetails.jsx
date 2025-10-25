@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react"
 import { usePlannerContext } from "~/hooks/useContext"
-import { useScreenSize } from "~/hooks/useEffect"
 import { useFetchAllSchedulingHours } from "~/hooks/useQuery"
 import { styled } from "@mui/material/styles"
 import { getStrTimeBlock, getStrDatetime } from "~/utils/datetime"
@@ -16,7 +15,6 @@ import IconButton from "@mui/material/IconButton"
 import Collapse from "@mui/material/Collapse"
 import SvgIcon from "@mui/material/SvgIcon"
 import CircleIcon from "@mui/icons-material/Circle"
-import AccessTimeIcon from "@mui/icons-material/AccessTime"
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday"
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined"
@@ -33,7 +31,7 @@ const StyledListItemTitle = styled(ListItemText)(({ props }) => ({
   marginTop: "2px",
   marginBottom: "0px",
   "& .MuiTypography-root": {
-    fontSize: props?.fontSize || "0.9rem",
+    fontSize: props?.fontSize || "0.85rem",
     fontWeight: props?.fontWeight || 400
   }
 }))
@@ -73,15 +71,42 @@ const statusNumToText = {
   1: "Completed"
 }
 
-export default function TaskDetails({ taskSidebarRef }) {
+const AutoScheduleIcon = (props) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="1em"
+      height="1em"
+      {...props}
+    >
+      <path
+        fill="currentColor"
+        d="m12 19l-1.25-2.75L8 15l2.75-1.25L12 11l1.25 2.75L16 15l-2.75 1.25L12 19Zm-7 3q-.825 0-1.413-.588T3 20V6q0-.825.588-1.413T5 4h1V2h2v2h8V2h2v2h1q.825 0 1.413.588T21 6v14q0 .825-.588 1.413T19 22H5Zm0-2h14V10H5v10Z"
+      ></path>
+    </svg>
+  )
+}
+
+export default function TaskDetails({ task }) {
   const { targetTask, taskSidebarWidth } = usePlannerContext()
-  const { startAt, endAt, name, status, priority, tags, description } =
-    targetTask
+  const {
+    startAt,
+    endAt,
+    startDate,
+    dueDate,
+    schedulingHour,
+    name,
+    status,
+    priority,
+    tags,
+    description
+  } = targetTask || task
   const stackRef = useRef(null)
   const stackContainerRef = useRef(null)
   const [stackWidth, setStackWidth] = useState(0)
   const [stackContainerWidth, setStackContainerWidth] = useState(0)
-  const [expand, setExpand] = useState(false) // Expand Scheduling Details
+  const [expandSchedule, setExpandSchedule] = useState(false) // Expand Scheduling Details
 
   const responsiveThreshold = 372
 
@@ -107,29 +132,31 @@ export default function TaskDetails({ taskSidebarRef }) {
           </Typography>
         </ListItem>
 
-        <ListItem>
-          <Box
-            sx={{
-              width: "100%",
-              maxWidth: "400px",
-              display: "flex",
-              alignItems: "center",
-              padding: "8px 12px",
-              borderRadius: "8px",
-              backgroundColor: "#FFFFFF",
-              boxShadow: "0 0 4px 0px rgba(187, 187, 237, 0.3)"
-            }}
-          >
-            <StyledListItemIcon>
-              <CalendarTodayIcon
-                sx={{ color: "primary.dark", fontSize: "1rem" }}
-              />
-            </StyledListItemIcon>
-            <Typography variant="body1" color="#8a8a8a" fontWeight={500}>
-              {getStrTimeBlock(startAt, endAt)}
-            </Typography>
-          </Box>
-        </ListItem>
+        {!task && targetTask && (
+          <ListItem>
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: "400px",
+                display: "flex",
+                alignItems: "center",
+                padding: "8px 12px",
+                borderRadius: "8px",
+                backgroundColor: "#FFFFFF",
+                boxShadow: "0 0 4px 0px rgba(187, 187, 237, 0.3)"
+              }}
+            >
+              <StyledListItemIcon>
+                <CalendarTodayIcon
+                  sx={{ color: "primary.dark", fontSize: "1rem" }}
+                />
+              </StyledListItemIcon>
+              <Typography variant="body1" color="#8a8a8a" fontWeight={500}>
+                {getStrTimeBlock(startAt, endAt)}
+              </Typography>
+            </Box>
+          </ListItem>
+        )}
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <List>
@@ -234,7 +261,7 @@ export default function TaskDetails({ taskSidebarRef }) {
               </ListItem>
             </Box>
 
-            {tags.length !== 0 && (
+            {tags && tags.length !== 0 && (
               <Box
                 ref={stackContainerRef}
                 sx={{
@@ -290,10 +317,10 @@ export default function TaskDetails({ taskSidebarRef }) {
               </Box>
             )}
 
-            {targetTask.startDate &&
-              targetTask.dueDate &&
-              String(targetTask.startDate?.$d) !== "Invalid Date" &&
-              String(targetTask.dueDate?.$d) !== "Invalid Date" && (
+            {startDate &&
+              dueDate &&
+              String(startDate?.$d) !== "Invalid Date" &&
+              String(dueDate?.$d) !== "Invalid Date" && (
                 <Box
                   sx={{
                     display: "flex",
@@ -303,22 +330,24 @@ export default function TaskDetails({ taskSidebarRef }) {
                   <Box sx={{ display: "flex" }}>
                     <ListItem sx={{ maxWidth: "143px", minWidth: "143px" }}>
                       <StyledListItemIcon>
-                        <AccessTimeIcon
-                          sx={{ color: "#8a8a8a", fontSize: "1.1rem" }}
+                        <AutoScheduleIcon
+                          color="#8a8a8a"
+                          width="1.1rem"
+                          height="1.1rem"
                         />
                       </StyledListItemIcon>
                       <StyledListItemTitle>Scheduling</StyledListItemTitle>
                     </ListItem>
                     <ListItem>
                       <IconButton
-                        onClick={() => setExpand(!expand)}
+                        onClick={() => setExpandSchedule(!expandSchedule)}
                         sx={{
                           width: "24px",
                           height: "24px",
                           borderRadius: "50%"
                         }}
                       >
-                        {expand ? (
+                        {expandSchedule ? (
                           <ExpandLessRoundedIcon />
                         ) : (
                           <ExpandMoreRoundedIcon />
@@ -327,7 +356,7 @@ export default function TaskDetails({ taskSidebarRef }) {
                     </ListItem>
                   </Box>
 
-                  <Collapse in={expand} timeout={350}>
+                  <Collapse in={expandSchedule} timeout={350}>
                     <Box
                       sx={{
                         margin: "0 8px 8px 8px",
@@ -375,7 +404,7 @@ export default function TaskDetails({ taskSidebarRef }) {
                             color="#8A8A9A"
                             fontWeight={500}
                           >
-                            {getStrDatetime(targetTask.startDate)}
+                            {getStrDatetime(startDate)}
                           </Typography>
                         </ListItem>
                       </Box>
@@ -415,7 +444,7 @@ export default function TaskDetails({ taskSidebarRef }) {
                             color="#8A8A9A"
                             fontWeight={500}
                           >
-                            {getStrDatetime(targetTask.dueDate)}
+                            {getStrDatetime(dueDate)}
                           </Typography>
                         </ListItem>
                       </Box>
@@ -460,9 +489,7 @@ export default function TaskDetails({ taskSidebarRef }) {
                           >
                             {
                               schedulingHours.find(
-                                (schedulingHour) =>
-                                  schedulingHour._id ===
-                                  targetTask.schedulingHour
+                                (sch) => sch._id === schedulingHour
                               ).name
                             }
                           </Typography>

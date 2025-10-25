@@ -4,8 +4,8 @@ import { useTaskState } from "~/hooks/useState"
 import { useUpdateTask, useDeleteTask } from "~/hooks/useMutation"
 import CustomSubmitButton from "~/components/ui/CustomSubmitButton"
 import CustomDeleteDialog from "~/components/ui/CustomDeleteDialog"
-import TaskDetailsUpdate from "./TaskDetailsUpdate/TaskDetailsUpdate"
-import TaskSchedulingUpdate from "./TaskSchedulingUpdate/TaskSchedulingUpdate"
+import TaskDetailsUpdate from "~/components/TaskDetailsUpdate/TaskDetailsUpdate"
+import TaskSchedulingUpdate from "~/components/TaskSchedulingUpdate/TaskSchedulingUpdate"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Typography from "@mui/material/Typography"
@@ -104,7 +104,6 @@ export default function TaskUpdate({ taskSidebarRef }) {
       scheduling_hour_id: task.smartScheduling ? task.schedulingHour : null,
       duration: task.smartScheduling ? task.duration : null,
       split: task.smartScheduling ? task.split : null,
-      created_at: createdAt,
       time_allocations: [
         {
           start_at: task.startAt,
@@ -141,6 +140,10 @@ export default function TaskUpdate({ taskSidebarRef }) {
       deleteSingleTask({ id })
       resetDeleteTask()
     }, 1000)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false)
   }
 
   return (
@@ -264,14 +267,12 @@ export default function TaskUpdate({ taskSidebarRef }) {
         </Button>
         {openDeleteDialog && (
           <CustomDeleteDialog
-            openDeleteDialogState={{
-              openDeleteDialog,
-              setOpenDeleteDialog
-            }}
-            taskName={targetTask.name}
-            isDeletingTask={isDeletingTask}
-            isDeletedTask={isDeletedTask}
-            handleDeleteTask={handleDeleteTask}
+            openDeleteDialog={openDeleteDialog}
+            onCloseDeleteDialog={handleCloseDeleteDialog}
+            name={targetTask.name}
+            isDeleting={isDeletingTask}
+            isDeleted={isDeletedTask}
+            onDelete={handleDeleteTask}
           />
         )}
       </Box>

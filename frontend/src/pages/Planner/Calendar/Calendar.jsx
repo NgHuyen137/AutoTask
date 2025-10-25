@@ -21,7 +21,9 @@ import {
   scrollToTarget
 } from "~/utils/datetime"
 import "./Calendar.css"
+import taskNotFoundImage from "~/assets/images/task_not_found.png"
 import Box from "@mui/material/Box"
+import Spinner from "~/components/ui/Spinner"
 
 const useToday = (setToday) => {
   useEffect(() => {
@@ -49,9 +51,12 @@ const useCalendarHeaderPadding = () => {
     const calendarHeader = document.querySelector(
       ".fc-scrollgrid-section-header > th > .fc-scroller-harness > .fc-scroller"
     )
-    const scrollbarWidth =
-      calendarContainer.clientWidth - calendarBodyContainer.clientWidth
-    calendarHeader.style.paddingRight = `${scrollbarWidth}px`
+
+    if (calendarContainer || calendarBodyContainer || calendarHeader) {
+      const scrollbarWidth =
+        calendarContainer.clientWidth - calendarBodyContainer.clientWidth
+      calendarHeader.style.paddingRight = `${scrollbarWidth}px`
+    }
   }, [])
 }
 
@@ -111,11 +116,11 @@ const useChangeSelectTaskCursor = (popperRef) => {
     }
 
     const calendarBody = document.querySelector(".fc-timegrid-slots tbody")
-    calendarBody.addEventListener("mousedown", handleMouseDown)
+    calendarBody?.addEventListener("mousedown", handleMouseDown)
     window.addEventListener("mouseup", handleMouseUp)
 
     return () => {
-      calendarBody.removeEventListener("mousedown", handleMouseDown)
+      calendarBody?.removeEventListener("mousedown", handleMouseDown)
       window.removeEventListener("mouseup", handleMouseUp)
     }
   }, [])
@@ -168,13 +173,13 @@ export default function Calendar({ calendarRef, anchorEl, popperRef }) {
   // Track when users click previous and next button in Calendar view
   const [startDateView, setStartDateView] = useState(null)
 
-  const tasks = useFetchAllTasks()
+  const { data, error } = useFetchAllTasks()
   const { updateSingleTask } = useUpdateTask()
 
   const eventObjs = useMemo(() => {
     // A function used to create a list of FullCalendar Event objects for displaying on the calendar
-    if (tasks) {
-      return tasks.flatMap((task) => {
+    if (data?.tasks) {
+      return data?.tasks.flatMap((task) => {
         if (task.status === 0)
           return task["time_allocations"].map((time_allocation) => ({
             id: task["_id"],
@@ -199,7 +204,7 @@ export default function Calendar({ calendarRef, anchorEl, popperRef }) {
       })
     }
     return []
-  }, [tasks])
+  }, [data?.tasks])
 
   const handleSelectTimeBlock = (info) => {
     setShowTaskCreatePopup(true)
@@ -457,6 +462,8 @@ export default function Calendar({ calendarRef, anchorEl, popperRef }) {
       })
     }
   }, [today, startDateView, calendarView])
+
+  if (!data && !error?.response === 404) return <Spinner />
 
   return (
     <Box

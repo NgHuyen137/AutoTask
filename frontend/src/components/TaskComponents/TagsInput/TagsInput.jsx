@@ -77,7 +77,7 @@ export function CompactTagsInput({ taskState, props, tagsOverflowState }) {
         freeSolo // Allow users to enter new tags
         disableCloseOnSelect={true}
         clearIcon={null}
-        value={task.tags.map((value) => value["name"])}
+        value={task.tags ? task.tags.map((value) => value["name"]) : []}
         options={options}
         onChange={(event, newTags) => {
           const cleanedTags = newTags.map((tag) =>
@@ -325,7 +325,7 @@ export function ExpandedTagsInput({ taskState, props }) {
         freeSolo // Allow users to enter new tags
         disableCloseOnSelect={true}
         clearIcon={null}
-        value={task.tags.map((value) => value["name"])}
+        value={task.tags ? task.tags.map((value) => value["name"]) : []}
         options={options}
         onOpen={() => setOpenTagsInput(true)}
         onClose={() => setOpenTagsInput(false)}

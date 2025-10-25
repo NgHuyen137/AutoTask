@@ -200,6 +200,9 @@ theme = createTheme(theme, {
       default: "#F7F8FC",
       paper: "#F7F8FC"
     },
+    icon: {
+      main: "#747577"
+    },
 
     taskColorPalette: {
       pink: {

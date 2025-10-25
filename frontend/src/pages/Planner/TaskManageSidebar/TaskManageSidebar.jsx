@@ -7,23 +7,12 @@ import EditButton from "~/components/ui/EditButton"
 import TaskDetails from "~/components/TaskDetails/TaskDetails"
 import TaskUpdate from "./TaskUpdate/TaskUpdate"
 import Box from "@mui/material/Box"
-import Popper from "@mui/material/Popper"
-import Grow from "@mui/material/Grow"
-import Paper from "@mui/material/Paper"
 import Drawer from "@mui/material/Drawer"
 import Tooltip from "@mui/material/Tooltip"
-import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
-import SvgIcon from "@mui/material/SvgIcon"
-import List from "@mui/material/List"
-import ListItem from "@mui/material/ListItem"
-import ListItemText from "@mui/material/ListItemText"
-import ListItemIcon from "@mui/material/ListItemIcon"
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined"
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined"
-import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined"
-import CustomDeleteDialog from "~/components/ui/CustomDeleteDialog"
 import MoreOptionsButton from "~/components/ui/MoreOptionsButton"
+import MoreOptionsMenu from "~/components/ui/MoreOptionsMenu"
 
 const useResponsiveTaskSidebarWidth = (
   screenWidth,
@@ -69,10 +58,8 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
     reset: resetDeleteTask
   } = useDeleteTask()
 
-  const [hoverMoreOptionsButton, setHoverMoreOptionsButton] = useState(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
-  const [openMoreOptions, setOpenMoreOptions] = useState(false)
-  const moreOptionsAnchor = useRef(null)
+  const [moreOptionsAnchor, setMoreOptionsAnchor] = useState(null)
   const moreOptionsPaperRef = useRef(null)
 
   const screenWidth = useScreenSize()
@@ -94,37 +81,27 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
   useClickOutsideMoreOptionsPopper(
     moreOptionsAnchor,
     moreOptionsPaperRef,
-    setOpenMoreOptions,
+    setMoreOptionsAnchor,
     openDeleteDialog
   )
 
   const handleMarkTaskDone = () => {
-    const updatedTaskData = {
-      name: targetTask.name,
-      status: 1,
-      priority: targetTask.priority,
-      tags: targetTask.tags,
-      description: targetTask.description,
-      smart_scheduling: targetTask.smartScheduling,
-      start_date: targetTask.smartScheduling ? targetTask.startDate : null,
-      due_date: targetTask.smartScheduling ? targetTask.dueDate : null,
-      scheduling_hour_id: targetTask.smartScheduling
-        ? targetTask.schedulingHour
-        : null,
-      duration: targetTask.smartScheduling ? targetTask.duration : null,
-      split: targetTask.smartScheduling ? targetTask.split : null,
-      time_allocations: !targetTask.smartScheduling
-        ? [
-            {
-              start_at: targetTask.startAt,
-              end_at: targetTask.endAt,
-              is_scheduled_ontime: true
-            }
-          ]
-        : null,
-      created_at: targetTask.createdAt
-    }
+    const updatedTaskData = { status: 1 }
+    updateSingleTask({ id: targetTask.id, updatedTaskData })
 
+    // Close Update page
+    setOpenUpdate(false)
+    localStorage.setItem("openUpdate", false)
+    setOpenTaskSidebar(false)
+    localStorage.setItem("openTaskSidebar", false)
+    setTaskSidebarWidth(defaultTaskSidebarWidth)
+    localStorage.setItem("taskSidebarWidth", defaultTaskSidebarWidth)
+    setTargetTask(null)
+    localStorage.setItem("targetTask", null)
+  }
+
+  const handleMarkTaskIncomplete = () => {
+    const updatedTaskData = { status: 0 }
     updateSingleTask({ id: targetTask.id, updatedTaskData })
 
     // Close Update page
@@ -161,11 +138,7 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
   }
 
   const handleOpenMoreOptions = (event) => {
-    moreOptionsAnchor.current = event.currentTarget
-    setOpenMoreOptions((prev) => {
-      if (prev === false) return true
-      return false
-    })
+    setMoreOptionsAnchor(event.currentTarget)
   }
 
   const handleResizeTaskSidebar = (e) => {
@@ -192,6 +165,15 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
 
     document.addEventListener("mousemove", handleMouseMove)
     document.addEventListener("mouseup", handleMouseUp)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false)
+  }
+
+  const handleOpenDeleteDialog = () => {
+    setMoreOptionsAnchor(null)
+    setOpenDeleteDialog(true)
   }
 
   if (!openTaskSidebar) return
@@ -259,153 +241,32 @@ export default function TaskManageSidebar({ taskSidebarRef }) {
           >
             <EditButton onEdit={handleOpenEditTask} />
 
-            <MoreOptionsButton openMoreOptions={openMoreOptions} onOpenMoreOptions={handleOpenMoreOptions} />
-            <Popper
-              disablePortal
-              transition
-              placement="left-end"
-              open={openMoreOptions}
-              anchorEl={moreOptionsAnchor.current}
-              sx={{ zIndex: 1600 }}
-            >
-              {({ TransitionProps }) => (
-                <Grow {...TransitionProps} timeout={350}>
-                  <Paper
-                    ref={moreOptionsPaperRef}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      borderRadius: "12px",
-                      boxShadow:
-                        "0px 5px 5px -3px rgba(0, 0, 0, 0.06),0px 8px 10px 1px rgba(0, 0, 0, 0.03),0px 3px 14px 2px rgba(0, 0, 0, 0.05)"
-                    }}
-                  >
-                    <List
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        padding: 0
-                      }}
-                    >
-                      <Button
-                        onClick={() => {
-                          setOpenUpdate(true)
-                          localStorage.setItem("openUpdate", true)
-                        }}
-                        sx={{
-                          textTransform: "none",
-                          padding: 0,
-                          borderRadius: "12px 12px 0 0",
-                          color: "text.primary",
-                          ":hover": {
-                            backgroundColor: "#f5f5f5"
-                          }
-                        }}
-                      >
-                        <ListItem sx={{ padding: "2px 16px" }}>
-                          <ListItemIcon sx={{ minWidth: "24px" }}>
-                            <SvgIcon
-                              sx={{ fontSize: "0.9rem", color: "#9e9e9e" }}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                width="1em"
-                                height="1em"
-                              >
-                                <path
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
-                                ></path>
-                              </svg>
-                            </SvgIcon>
-                          </ListItemIcon>
-                          <ListItemText
-                            sx={{
-                              "& .MuiTypography-root": { fontSize: "0.8rem" }
-                            }}
-                          >
-                            Edit
-                          </ListItemText>
-                        </ListItem>
-                      </Button>
-                      <Button
-                        onClick={handleMarkTaskDone}
-                        sx={{
-                          textTransform: "none",
-                          padding: 0,
-                          color: "text.primary",
-                          ":hover": {
-                            backgroundColor: "#f5f5f5"
-                          }
-                        }}
-                      >
-                        <ListItem sx={{ padding: "2px 16px" }}>
-                          <ListItemIcon sx={{ minWidth: "24px" }}>
-                            <CheckCircleOutlineOutlinedIcon
-                              sx={{ fontSize: "1rem", color: "#9e9e9e" }}
-                            />
-                          </ListItemIcon>
-                          <ListItemText
-                            sx={{
-                              "& .MuiTypography-root": { fontSize: "0.8rem" }
-                            }}
-                          >
-                            Mark done
-                          </ListItemText>
-                        </ListItem>
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setOpenDeleteDialog(true)
-                          setOpenMoreOptions(false)
-                        }}
-                        sx={{
-                          textTransform: "none",
-                          padding: 0,
-                          borderRadius: "0 0 12px 12px",
-                          color: "text.primary",
-                          ":hover": {
-                            backgroundColor: "#f5f5f5"
-                          }
-                        }}
-                      >
-                        <ListItem sx={{ padding: "2px 16px" }}>
-                          <ListItemIcon sx={{ minWidth: "24px" }}>
-                            <DeleteOutlinedIcon
-                              sx={{ fontSize: "1rem", color: "#9e9e9e" }}
-                            />
-                          </ListItemIcon>
-                          <ListItemText
-                            sx={{
-                              "& .MuiTypography-root": { fontSize: "0.8rem" }
-                            }}
-                          >
-                            Delete
-                          </ListItemText>
-                        </ListItem>
-                      </Button>
-                    </List>
-                  </Paper>
-                </Grow>
-              )}
-            </Popper>
-            {openDeleteDialog && (
-              <CustomDeleteDialog
-                openDeleteDialogState={{
-                  openDeleteDialog,
-                  setOpenDeleteDialog
-                }}
-                name={targetTask.name}
-                isDeleting={isDeletingTask}
-                isDeleted={isDeletedTask}
-                onDelete={handleDeleteTask}
-              />
-            )}
+            <MoreOptionsButton
+              openMoreOptions={Boolean(moreOptionsAnchor)}
+              onOpenMoreOptions={handleOpenMoreOptions}
+            />
+            <MoreOptionsMenu
+              taskStatus={targetTask.status}
+              onMarkTaskDone={() => {
+                setMoreOptionsAnchor(null)
+                handleMarkTaskDone()
+              }}
+              onMarkTaskIncomplete={() => {
+                setMoreOptionsAnchor(null)
+                handleMarkTaskIncomplete()
+              }}
+              onOpenEditTask={handleOpenEditTask}
+              openMoreOptions={Boolean(moreOptionsAnchor)}
+              moreOptionsAnchor={moreOptionsAnchor}
+              moreOptionsPaperRef={moreOptionsPaperRef}
+              openDeleteDialog={openDeleteDialog}
+              onOpenDeleteDialog={handleOpenDeleteDialog}
+              onCloseDeleteDialog={handleCloseDeleteDialog}
+              deleteName={targetTask.name}
+              isDeleting={isDeletingTask}
+              isDeleted={isDeletedTask}
+              onDeleteTask={handleDeleteTask}
+            />
 
             <Tooltip arrow title="Close">
               <IconButton
